@@ -1,506 +1,545 @@
 openapi: 3.0.3
 info:
-    title: LoreWeave Character API
-    version: 1.0.1
+  title: LoreWeave Character API
+  version: 1.0.1
 servers:
-    -   url: https://localhost:7048
+  - url: https://localhost:7048
 paths:
-    /v1/characters:
-        get:
-            summary: Get paged characters
-            operationId: getPagedCharacters
-            parameters:
-                -   $ref: '#/components/parameters/PageNumber'
-                -   $ref: '#/components/parameters/PageSize'
-                -   $ref: '#/components/parameters/SortType'
-                -   $ref: '#/components/parameters/SortOrder'
-                -   $ref: '#/components/parameters/NameFilter'
-            responses:
-                '200':
-                    description: List of characters
-                    content:
-                        application/json:
-                            schema:
-                                type: array
-                                minItems: 0
-                                maxItems: 100
-                                items:
-                                    $ref: '#/components/schemas/CharacterPayloadWithRelations'
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-        post:
-            summary: Create a character
-            operationId: createCharacter
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/CreateCharacterDto'
-            responses:
-                '201':
-                    description: Created
-                    content:
-                        application/json:
-                            schema:
-                                type: string
-                                format: uuid
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-
-    /v1/characters/{id}:
-        get:
-            operationId: getCharacterById
-            summary: Get character by id
-            parameters:
-                -   $ref: '#/components/parameters/Id'
-            responses:
-                '200':
-                    description: Character found
-                    headers:
-                        ETag:
-                            description: Entity tag representing the current version
-                            schema:
-                                type: string
-                                minLength: 1
-                                maxLength: 50
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/CharacterDto'
-                '404':
-                    $ref: '#/components/responses/NotFound'
-        put:
-            operationId: updateCharacter
-            summary: Update character
-            parameters:
-                -   $ref: '#/components/parameters/Id'
-                -   $ref: '#/components/parameters/IfMatch'
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/UpdateCharacterDto'
-            responses:
-                '204':
-                    description: No Content
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '404':
-                    $ref: '#/components/responses/NotFound'
-                '412':
-                    $ref: '#/components/responses/PreconditionFailed'
-        delete:
-            operationId: deleteCharacter
-            summary: Delete character
-            parameters:
-                -   $ref: '#/components/parameters/Id'
-            responses:
-                '204':
-                    description: No Content
-                '404':
-                    $ref: '#/components/responses/NotFound'
-
-    /v1/characters/knows:
-        post:
-            operationId: createKnowRelationship
-            summary: Create a knowledge relationship between characters
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/CreateKnowsDto'
-            responses:
-                '201':
-                    description: Created
-                    content:
-                        application/json:
-                            schema:
-                                type: string
-                                format: uuid
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-
-    /v1/characters/path/{from}/to/{to}:
-        get:
-            operationId: findRelationBetweenCharacters
-            summary: Find shortest path between two characters through KNOWS relationships
-            parameters:
-                -   name: from
-                    in: path
-                    required: true
-                    description: Source character identifier
-                    schema:
-                        type: string
-                        format: uuid
-                -   name: to
-                    in: path
-                    required: true
-                    description: Target character identifier
-                    schema:
-                        type: string
-                        format: uuid
-                -   name: maxHops
-                    in: query
-                    required: false
-                    description: Maximum number of hops to traverse (default 10)
-                    schema:
-                        type: integer
-                        format: int32
-                        default: 10
-                        minimum: 1
-                        maximum: 50
-            responses:
-                '200':
-                    description: Path found or empty path if no connection
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/RelationPathPayload'
-                '404':
-                    $ref: '#/components/responses/NotFound'
-
-    /v1/characters/knows/{from}/to/{to}:
-        get:
-            operationId: getKnowRelationship
-            summary: Get the knowledge relationship between two characters
-            parameters:
-                -   name: from
-                    in: path
-                    required: true
-                    description: Source character identifier
-                    schema:
-                        type: string
-                        format: uuid
-                -   name: to
-                    in: path
-                    required: true
-                    description: Target character identifier
-                    schema:
-                        type: string
-                        format: uuid
-            responses:
-                '200':
-                    description: Knowledge relationship found
-                    headers:
-                        ETag:
-                            description: Entity tag representing the current version
-                            schema:
-                                type: string
-                                minLength: 1
-                                maxLength: 50
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/KnowRelationPayload'
-                '404':
-                    $ref: '#/components/responses/NotFound'
-        put:
-            operationId: updateKnowRelationship
-            summary: Update a knowledge relationship between characters
-            parameters:
-                -   name: from
-                    in: path
-                    required: true
-                    description: Source character identifier
-                    schema:
-                        type: string
-                        format: uuid
-                -   name: to
-                    in: path
-                    required: true
-                    description: Target character identifier
-                    schema:
-                        type: string
-                        format: uuid
-                -   $ref: '#/components/parameters/IfMatch'
-            requestBody:
-                required: true
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/UpdateKnowsDto'
-            responses:
-                '204':
-                    description: No Content
-                '400':
-                    $ref: '#/components/responses/BadRequest'
-                '404':
-                    $ref: '#/components/responses/NotFound'
-                '412':
-                    $ref: '#/components/responses/PreconditionFailed'
-        delete:
-            operationId: deleteKnowRelationship
-            summary: Delete a knowledge relationship
-            parameters:
-                -   name: from
-                    in: path
-                    required: true
-                    schema:
-                        type: string
-                        format: uuid
-                -   name: to
-                    in: path
-                    required: true
-                    schema:
-                        type: string
-                        format: uuid
-            responses:
-                '204':
-                    description: No Content
-                '404':
-                    $ref: '#/components/responses/NotFound'
-
-components:
-    parameters:
-        Id:
-            name: id
-            in: path
-            required: true
-            description: Character identifier
+  /v1/characters:
+    get:
+      summary: Get paged characters
+      operationId: getPagedCharacters
+      parameters:
+        - $ref: '#/components/parameters/PageNumber'
+        - $ref: '#/components/parameters/PageSize'
+        - $ref: '#/components/parameters/SortType'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/NameFilter'
+      responses:
+        '200':
+          description: List of characters
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 0
+                maxItems: 100
+                items:
+                  $ref: '#/components/schemas/CharacterPayloadWithRelations'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    post:
+      summary: Create a character
+      operationId: createCharacter
+      requestBody:
+        required: true
+        content:
+          application/json:
             schema:
+              $ref: '#/components/schemas/CreateCharacterDto'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
                 type: string
                 format: uuid
-        PageNumber:
-            name: pageNumber
-            in: query
-            required: true
-            description: Page number (0-based or 1-based depending on server configuration)
-            schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 1000000
-        PageSize:
-            name: pageSize
-            in: query
-            required: true
-            description: Page size
-            schema:
-                type: integer
-                format: int32
-                minimum: 0
-                maximum: 100
-        SortType:
-            name: sortType
-            in: query
-            required: true
-            description: Field to sort by
-            schema:
-                type: string
-                minLength: 0
-                maxLength: 50
-                pattern: "^(name|id)$"
-        SortOrder:
-            name: sortOrder
-            in: query
-            required: true
-            description: Sort direction (e.g., asc, desc)
-            schema:
-                type: string
-                minLength: 3
-                maxLength: 4
-                pattern: "^(Asc|Desc)$"
-        NameFilter:
-            name: nameFilter
-            in: query
-            required: false
-            description: Filter for character name.
-            schema:
-                type: string
-                minLength: 0
-                maxLength: 50
-        IfMatch:
-            name: If-Match
-            in: header
-            required: true
-            description: The ETag version of the character (integer)
-            schema:
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  
+  /v1/characters/{id}:
+    get:
+      operationId: getCharacterById
+      summary: Get character by id
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Character found
+          headers:
+            ETag:
+              description: Entity tag representing the current version
+              schema:
                 type: string
                 minLength: 1
                 maxLength: 50
-    responses:
-        BadRequest:
-            description: Bad Request
-            content:
-                application/problem+json:
-                    schema:
-                        $ref: '#/components/schemas/ProblemDetails'
-        NotFound:
-            description: The specified resource was not found
-            content:
-                application/problem+json:
-                    schema:
-                        $ref: '#/components/schemas/ProblemDetails'
-        PreconditionFailed:
-            description: Precondition Failed
-            content:
-                application/problem+json:
-                    schema:
-                        $ref: '#/components/schemas/ProblemDetails'
-    schemas:
-        ProblemDetails:
-            type: object
-            title: ProblemDetails
-            properties:
-                type:
-                    type: string
-                    minLength: 0
-                    maxLength: 500
-                    nullable: true
-                title:
-                    type: string
-                    minLength: 0
-                    maxLength: 500
-                    nullable: true
-                status:
-                    type: integer
-                    format: int32
-                    minimum: 100
-                    maximum: 599
-                    nullable: true
-                detail:
-                    type: string
-                    minLength: 0
-                    maxLength: 500
-                    nullable: true
-                instance:
-                    type: string
-                    minLength: 0
-                    maxLength: 500
-                    nullable: true
-            additionalProperties: true
-        CharacterDto:
-            title: CharacterDto
-            type: object
-            required: [ id, name ]
-            properties:
-                id:
-                    type: string
-                    description: Character identifier
-                    format: uuid
-                name:
-                    type: string
-                    description: Character name
-                    minLength: 1
-                    maxLength: 50
-        CharacterPayloadWithRelations:
-            type: object
-            title: CharacterPayloadWithRelations
-            required: [ id, name, knowCharacters ]
-            properties:
-                id:
-                    type: string
-                    format: uuid
-                name:
-                    type: string
-                    minLength: 1
-                    maxLength: 50
-                knowCharacters:
-                    type: array
-                    minItems: 0
-                    maxItems: 50
-                    items:
-                        $ref: '#/components/schemas/KnowCharacterRelationPayload'
-        KnowCharacterRelationPayload:
-            type: object
-            title: KnowCharacterRelationPayload
-            required: [ characterId, description, isStrongRelation ]
-            properties:
-                characterId:
-                    type: string
-                    format: uuid
-                description:
-                    type: string
-                    minLength: 0
-                    maxLength: 256
-                isStrongRelation:
-                    type: boolean
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CharacterDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateCharacter
+      summary: Update character
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCharacterDto'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+    delete:
+      operationId: deleteCharacter
+      summary: Delete character
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: No Content
+        '404':
+          $ref: '#/components/responses/NotFound'
+  
+  /v1/characters/knows:
+    post:
+      operationId: createKnowRelationship
+      summary: Create a knowledge relationship between characters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateKnowsDto'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  
+  /v1/characters/path/{from}/to/{to}:
+    get:
+      operationId: findRelationBetweenCharacters
+      summary: Find shortest path between two characters through KNOWS relationships
+      parameters:
+        - name: from
+          in: path
+          required: true
+          description: Source character identifier
+          schema:
+            type: string
+            format: uuid
+        - name: to
+          in: path
+          required: true
+          description: Target character identifier
+          schema:
+            type: string
+            format: uuid
+        - name: maxHops
+          in: query
+          required: false
+          description: Maximum number of hops to traverse (default 10)
+          schema:
+            type: integer
+            format: int32
+            default: 10
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          description: Path found or empty path if no connection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RelationPathPayload'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  
+  /v1/characters/knows/{from}/to/{to}:
+    get:
+      operationId: getKnowRelationship
+      summary: Get the knowledge relationship between two characters
+      parameters:
+        - name: from
+          in: path
+          required: true
+          description: Source character identifier
+          schema:
+            type: string
+            format: uuid
+        - name: to
+          in: path
+          required: true
+          description: Target character identifier
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Knowledge relationship found
+          headers:
+            ETag:
+              description: Entity tag representing the current version
+              schema:
+                type: string
+                minLength: 1
+                maxLength: 50
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowRelationPayload'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      operationId: updateKnowRelationship
+      summary: Update a knowledge relationship between characters
+      parameters:
+        - name: from
+          in: path
+          required: true
+          description: Source character identifier
+          schema:
+            type: string
+            format: uuid
+        - name: to
+          in: path
+          required: true
+          description: Target character identifier
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateKnowsDto'
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+    delete:
+      operationId: deleteKnowRelationship
+      summary: Delete a knowledge relationship
+      parameters:
+        - name: from
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: to
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: No Content
+        '404':
+          $ref: '#/components/responses/NotFound'
+  
+  /v1/characters/{id}/facts:
+    put:
+      operationId: addFactToCharacter
+      summary: Add a fact to a character
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+            application/json:
+                schema:
+                    $ref: '#/components/schemas/CreateFactDto'
+      responses:
+          '201':
+              description: Created
+              content:
+                  application/json:
+                      schema:
+                          type: string
+                          format: uuid
+          '400':
+              $ref: '#/components/responses/BadRequest'
+          '404':
+              $ref: '#/components/responses/NotFound'
 
-        KnowRelationPayload:
-            title: KnowRelationPayload
-            description: >-
-                The current version is returned in the ETag response header,
-                not in the body.
-            type: object
-            required: [ fromCharacterId, toCharacterId, description, isStrongRelation ]
-            properties:
-                fromCharacterId:
-                    type: string
-                    format: uuid
-                toCharacterId:
-                    type: string
-                    format: uuid
-                description:
-                    type: string
-                    minLength: 0
-                    maxLength: 256
-                isStrongRelation:
-                    type: boolean
-        RelationPathPayload:
-            title: RelationPathPayload
-            type: object
-            required: [ characterIds, hops ]
-            properties:
-                characterIds:
-                    type: array
-                    description: Ordered list of character IDs forming the path from source to target
-                    minItems: 0
-                    maxItems: 50
-                    items:
-                        type: string
-                        format: uuid
-                hops:
-                    type: integer
-                    format: int32
-                    description: Number of relationships traversed (characterIds.length - 1)
-                    minimum: 0
-                    maximum: 50
-        CreateCharacterDto:
-            type: object
-            title: CreateCharacterDto
-            required: [ name ]
-            properties:
-                name:
-                    type: string
-                    minLength: 1
-                    maxLength: 50
-        UpdateCharacterDto:
-            title: UpdateCharacterDto
-            type: object
-            required: [ name ]
-            properties:
-                name:
-                    type: string
-                    minLength: 1
-                    maxLength: 50
-        CreateKnowsDto:
-            title: CreateKnowsDto
-            type: object
-            required: [ fromCharacterId, toCharacterId, description, isStrongRelation ]
-            properties:
-                fromCharacterId:
-                    type: string
-                    format: uuid
-                toCharacterId:
-                    type: string
-                    format: uuid
-                description:
-                    type: string
-                    minLength: 0
-                    maxLength: 256
-                isStrongRelation:
-                    type: boolean
-        UpdateKnowsDto:
-            title: UpdateKnowsDto
-            type: object
-            required: [ description, isStrongRelation ]
-            properties:
-                description:
-                    type: string
-                    minLength: 0
-                    maxLength: 256
-                isStrongRelation:
-                    type: boolean
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      description: Character identifier
+      schema:
+        type: string
+        format: uuid
+    PageNumber:
+      name: pageNumber
+      in: query
+      required: true
+      description: Page number (0-based or 1-based depending on server configuration)
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 1000000
+    PageSize:
+      name: pageSize
+      in: query
+      required: true
+      description: Page size
+      schema:
+        type: integer
+        format: int32
+        minimum: 0
+        maximum: 100
+    SortType:
+      name: sortType
+      in: query
+      required: true
+      description: Field to sort by
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 50
+        pattern: "^(name|id)$"
+    SortOrder:
+      name: sortOrder
+      in: query
+      required: true
+      description: Sort direction (e.g., asc, desc)
+      schema:
+        type: string
+        minLength: 3
+        maxLength: 4
+        pattern: "^(Asc|Desc)$"
+    NameFilter:
+      name: nameFilter
+      in: query
+      required: false
+      description: Filter for character name.
+      schema:
+        type: string
+        minLength: 0
+        maxLength: 50
+    IfMatch:
+      name: If-Match
+      in: header
+      required: true
+      description: The ETag version of the character (integer)
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 50
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    PreconditionFailed:
+      description: Precondition Failed
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+  schemas:
+    ProblemDetails:
+      type: object
+      title: ProblemDetails
+      properties:
+        type:
+          type: string
+          minLength: 0
+          maxLength: 500
+          nullable: true
+        title:
+          type: string
+          minLength: 0
+          maxLength: 500
+          nullable: true
+        status:
+          type: integer
+          format: int32
+          minimum: 100
+          maximum: 599
+          nullable: true
+        detail:
+          type: string
+          minLength: 0
+          maxLength: 500
+          nullable: true
+        instance:
+          type: string
+          minLength: 0
+          maxLength: 500
+          nullable: true
+      additionalProperties: true
+    CharacterDto:
+      title: CharacterDto
+      type: object
+      required: [ id, name ]
+      properties:
+        id:
+          type: string
+          description: Character identifier
+          format: uuid
+        name:
+          type: string
+          description: Character name
+          minLength: 1
+          maxLength: 50
+    CharacterPayloadWithRelations:
+      type: object
+      title: CharacterPayloadWithRelations
+      required: [ id, name, knowCharacters ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+        knowCharacters:
+          type: array
+          minItems: 0
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/KnowCharacterRelationPayload'
+    KnowCharacterRelationPayload:
+      type: object
+      title: KnowCharacterRelationPayload
+      required: [ characterId, description, isStrongRelation ]
+      properties:
+        characterId:
+          type: string
+          format: uuid
+        description:
+          type: string
+          minLength: 0
+          maxLength: 256
+        isStrongRelation:
+          type: boolean
+    
+    KnowRelationPayload:
+      title: KnowRelationPayload
+      description: >-
+        The current version is returned in the ETag response header,
+        not in the body.
+      type: object
+      required: [ fromCharacterId, toCharacterId, description, isStrongRelation ]
+      properties:
+        fromCharacterId:
+          type: string
+          format: uuid
+        toCharacterId:
+          type: string
+          format: uuid
+        description:
+          type: string
+          minLength: 0
+          maxLength: 256
+        isStrongRelation:
+          type: boolean
+    RelationPathPayload:
+      title: RelationPathPayload
+      type: object
+      required: [ characterIds, hops ]
+      properties:
+        characterIds:
+          type: array
+          description: Ordered list of character IDs forming the path from source to target
+          minItems: 0
+          maxItems: 50
+          items:
+            type: string
+            format: uuid
+        hops:
+          type: integer
+          format: int32
+          description: Number of relationships traversed (characterIds.length - 1)
+          minimum: 0
+          maximum: 50
+    CreateCharacterDto:
+      type: object
+      title: CreateCharacterDto
+      required: [ name ]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+    UpdateCharacterDto:
+      title: UpdateCharacterDto
+      type: object
+      required: [ name ]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+    CreateKnowsDto:
+      title: CreateKnowsDto
+      type: object
+      required: [ fromCharacterId, toCharacterId, description, isStrongRelation ]
+      properties:
+        fromCharacterId:
+          type: string
+          format: uuid
+        toCharacterId:
+          type: string
+          format: uuid
+        description:
+          type: string
+          minLength: 0
+          maxLength: 256
+        isStrongRelation:
+          type: boolean
+    UpdateKnowsDto:
+      title: UpdateKnowsDto
+      type: object
+      required: [ description, isStrongRelation ]
+      properties:
+        description:
+          type: string
+          minLength: 0
+          maxLength: 256
+        isStrongRelation:
+          type: boolean
+    CreateFactDto:
+      title: CreateFactDto
+      type: object
+      required: [ title, content ]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        content:
+          type: string
+          minLength: 1
+          maxLength: 512
+        

@@ -1,3 +1,4 @@
+
 using MessagePipe;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +32,8 @@ public static class HandlerConfiguration
             .AddAsyncRequestHandler<UpdateKnowRelationCommandHandler>()
             .AddAsyncRequestHandler<DeleteKnowRelationCommandHandler>()
             .AddAsyncRequestHandler<FindRelationBetweenCharacterQueryHandler>()
-            .AddAsyncRequestHandler<GetKnowRelationQueryHandler>();
+            .AddAsyncRequestHandler<GetKnowRelationQueryHandler>()
+            .AddAsyncRequestHandler<CreateFactCommandHandler>();
 
         return services;
     }

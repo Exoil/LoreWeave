@@ -5,6 +5,7 @@ using Neo4j.Driver;
 using LoreWeave.Domain.Entities.Characters;
 using LoreWeave.Domain.Entities.Characters.Commands;
 using LoreWeave.Domain.Entities.Characters.Queries;
+using LoreWeave.Domain.Entities.Facts.Commands;
 using LoreWeave.Domain.Entities.Knows;
 using LoreWeave.Domain.Entities.Knows.Commands;
 using LoreWeave.Domain.Extensions;
@@ -289,5 +290,22 @@ public class CharacterRepository : ICharacterRepository
             .Select(id => id.DatabaseIdToGuid())
             .ToList()
             .AsReadOnly();
+    }
+
+    public async Task CreateAsync(IAsyncTransaction transaction, Guid characterId, CreateFact createFact)
+    {
+        const string queryString = @"
+            MATCH (ch:Character {Id: $CharacterId})
+            CREATE (f:Fact {Id: $Id, Title: $Title, Content: $Content, Version: 1})
+            CREATE (ch)-[:HAS_FACT]->(f)";
+        var query = new Query(queryString, new
+        {
+            CharacterId = characterId.ToDatabaseId(),
+            Id = createFact.Id.ToDatabaseId(),
+            createFact.Title,
+            createFact.Content
+        });
+
+        await transaction.RunAsync(query);
     }
 }
