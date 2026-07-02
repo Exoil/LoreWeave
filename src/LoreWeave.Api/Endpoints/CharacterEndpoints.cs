@@ -183,11 +183,14 @@ public static class CharacterEndpoints
             .MapPut(
                 "{id:guid}/facts",
                 async (
-                    [FromServices] ResultsToHttpResponses responseResolver,
-                    [FromRoute] Guid id,
-                    CancellationToken cancellationToken = default) =>
-                {
-                    throw new NotImplementedException("Not yet implemented");
-                });
+                        [FromServices] ResultsToHttpResponses responseResolver,
+                        [FromRoute] Guid id,
+                        [FromBody] CreateFactDto createFact,
+                        CancellationToken cancellationToken = default) =>
+                    await responseResolver.GetResult<CreateFactCommand, Guid>(
+                        createFact.ToCommand(id),
+                        data => Results.Created(
+                            new Uri($"/v1/characters/{id}/facts/{data}", UriKind.Relative), data),
+                        cancellationToken));
     }
 }

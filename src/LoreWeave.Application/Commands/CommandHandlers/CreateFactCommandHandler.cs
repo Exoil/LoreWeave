@@ -1,4 +1,5 @@
 using LoreWeave.Application.Models;
+using LoreWeave.Domain.Entities.Facts.Commands;
 using LoreWeave.Domain.Exceptions;
 using LoreWeave.Domain.Exceptions.Enums;
 using LoreWeave.Domain.Factories;
@@ -34,11 +35,13 @@ public sealed class CreateFactCommandHandler : IAsyncRequestHandler<CreateFactCo
         CancellationToken cancellationToken = new CancellationToken())
     {
         await using var transaction = await _transactionFactory.CreateAsync();
-        
+
         var id = Guid.CreateVersion7();
 
         try
         {
+            var createFact = new CreateFact(id, request.Title, request.Content);
+
             var existCharacter = await _existsCharacter
                 .CharacterExistsAsync(transaction, request.CharacterId);
 
@@ -51,16 +54,16 @@ public sealed class CreateFactCommandHandler : IAsyncRequestHandler<CreateFactCo
             await _factRepository.CreateAsync(
                 transaction,
                 request.CharacterId,
-                request.CreateFact);
+                createFact);
 
             await transaction.CommitAsync();
-            
+
             return id;
         }
         catch(Exception exception)
         {
             await transaction.RollbackAsync();
-            _logger.Error(exception, "Error creating fact: {Title}", request.CreateFact.Title);
+            _logger.Error(exception, "Error creating fact: {Title}", request.Title);
 
             return exception;
         }
