@@ -1,4 +1,6 @@
 using LoreWeave.Application.Models;
+using LoreWeave.Domain.Exceptions;
+using LoreWeave.Domain.Exceptions.Enums;
 using LoreWeave.Domain.Factories;
 using LoreWeave.Domain.Repositories;
 
@@ -12,7 +14,8 @@ namespace LoreWeave.Application.Commands.CommandHandlers;
 
 public sealed class CreateFactCommandHandler : IAsyncRequestHandler<CreateFactCommand, Result<Guid, Exception>>
 {
-    private readonly ICharacterRepository _characterRepository;
+    private readonly IFactRepository _factRepository;
+    private readonly IExistsCharacter _existsCharacter;
     private readonly ILogger _logger;
     private readonly ITransactionFactory<IAsyncTransaction> _transactionFactory;
 
@@ -21,7 +24,8 @@ public sealed class CreateFactCommandHandler : IAsyncRequestHandler<CreateFactCo
         ILogger logger,
         ITransactionFactory<IAsyncTransaction> transactionFactory)
     {
-        _characterRepository = characterRepository;
+        _factRepository = characterRepository;
+        _existsCharacter = characterRepository;
         _logger = logger;
         _transactionFactory = transactionFactory;
     }
@@ -30,11 +34,26 @@ public sealed class CreateFactCommandHandler : IAsyncRequestHandler<CreateFactCo
         CancellationToken cancellationToken = new CancellationToken())
     {
         await using var transaction = await _transactionFactory.CreateAsync();
+        
         var id = Guid.CreateVersion7();
 
         try
         {
-            
+            var existCharacter = await _existsCharacter
+                .CharacterExistsAsync(transaction, request.CharacterId);
+
+            if (!existCharacter.Exists)
+            {
+                _logger.Information("Fact can't be created for not existing character.");
+                return new NotFoundException(Entities.Character);
+            }
+
+            await _factRepository.CreateAsync(
+                transaction,
+                request.CharacterId,
+                request.CreateFact);
+
+            await transaction.CommitAsync();
         }
         catch(Exception exception)
         {
