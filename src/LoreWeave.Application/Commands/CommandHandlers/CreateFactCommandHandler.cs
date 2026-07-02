@@ -31,6 +31,7 @@ public sealed class CreateFactCommandHandler : IAsyncRequestHandler<CreateFactCo
     {
         await using var transaction = await _transactionFactory.CreateAsync();
         var id = Guid.CreateVersion7();
+
         try
         {
             
