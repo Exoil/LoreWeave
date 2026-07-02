@@ -54,6 +54,8 @@ public sealed class CreateFactCommandHandler : IAsyncRequestHandler<CreateFactCo
                 request.CreateFact);
 
             await transaction.CommitAsync();
+            
+            return id;
         }
         catch(Exception exception)
         {
@@ -62,7 +64,5 @@ public sealed class CreateFactCommandHandler : IAsyncRequestHandler<CreateFactCo
 
             return exception;
         }
-
-        return id;
     }
 }
