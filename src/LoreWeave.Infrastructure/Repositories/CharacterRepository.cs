@@ -292,6 +292,20 @@ public class CharacterRepository : ICharacterRepository
             .AsReadOnly();
     }
 
-    public Task CreateAsync(IAsyncTransaction transaction, Guid characterId, CreateFact createFact) 
-        => throw new NotImplementedException();
+    public async Task CreateAsync(IAsyncTransaction transaction, Guid characterId, CreateFact createFact)
+    {
+        const string queryString = @"
+            MATCH (ch:Character {Id: $CharacterId})
+            CREATE (f:Fact {Id: $Id, Title: $Title, Content: $Content, Version: 1})
+            CREATE (ch)-[:HAS_FACT]->(f)";
+        var query = new Query(queryString, new
+        {
+            CharacterId = characterId.ToDatabaseId(),
+            Id = createFact.Id.ToDatabaseId(),
+            createFact.Title,
+            createFact.Content
+        });
+
+        await transaction.RunAsync(query);
+    }
 }
