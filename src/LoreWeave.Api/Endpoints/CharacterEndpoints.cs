@@ -178,5 +178,16 @@ public static class CharacterEndpoints
                         new FindRelationBetweenCharacterQuery(from, to, maxHops),
                         Results.Ok,
                         cancellationToken));
+
+        endpointGroup
+            .MapPut(
+                "{id:guid}/facts",
+                async (
+                    [FromServices] ResultsToHttpResponses responseResolver,
+                    [FromRoute] Guid id,
+                    CancellationToken cancellationToken = default) =>
+                {
+                    throw new NotImplementedException("Not yet implemented");
+                });
     }
 }
