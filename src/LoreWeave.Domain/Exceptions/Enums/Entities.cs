@@ -4,5 +4,6 @@ public enum Entities
 {
     Character = 1,
     KnowRelation = 2,
-    Fact = 3
+    Fact = 3,
+    FactConnection = 4
 }

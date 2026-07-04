@@ -19,4 +19,8 @@ public interface IFactRepository
     Task DeleteAsync(IAsyncTransaction transaction, DeleteFact deleteFact);
 
     Task ConnectFactToCharacterAsync(IAsyncTransaction transaction, Guid characterId, Guid factId);
+
+    Task<bool> FactConnectionExistsAsync(IAsyncTransaction transaction, Guid characterId, Guid factId);
+
+    Task DisconnectFactFromCharacterAsync(IAsyncTransaction transaction, Guid characterId, Guid factId);
 }

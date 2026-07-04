@@ -16,16 +16,16 @@ using Shouldly;
 
 namespace LoreWeave.Application.Test.Commands.CommandHandlers;
 
-public class ConnectFactToCharacterCommandHandlerTest
+public class DisconnectFactFromCharacterCommandHandlerTest
 {
     private readonly ICharacterRepository _characterRepository;
     private readonly IAsyncTransaction _transaction;
-    private readonly ConnectFactToCharacterCommandHandler _sut;
+    private readonly DisconnectFactFromCharacterCommandHandler _sut;
 
     private static readonly Guid CharacterId = Guid.NewGuid();
     private static readonly Guid FactId = Guid.NewGuid();
 
-    public ConnectFactToCharacterCommandHandlerTest()
+    public DisconnectFactFromCharacterCommandHandlerTest()
     {
         _characterRepository = Substitute.For<ICharacterRepository>();
         var logger = Substitute.For<ILogger>();
@@ -33,41 +33,15 @@ public class ConnectFactToCharacterCommandHandlerTest
         var transactionFactory = Substitute.For<ITransactionFactory<IAsyncTransaction>>();
         transactionFactory.CreateAsync().Returns(_transaction);
 
-        _sut = new ConnectFactToCharacterCommandHandler(transactionFactory, _characterRepository, logger);
+        _sut = new DisconnectFactFromCharacterCommandHandler(transactionFactory, _characterRepository, logger);
     }
 
     [Fact]
     [Trait(Constants.TraitName, Constants.TestTitle)]
-    public async Task InvokeAsync_WhenCharacterAndFactExistAndNotConnected_ReturnsSuccess()
+    public async Task InvokeAsync_WhenConnectionExists_ReturnsSuccess()
     {
         // Arrange
-        var command = new ConnectFactToCharacterCommand(CharacterId, FactId);
-        _characterRepository
-            .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), CharacterId)
-            .Returns(new EntityExistence(true, 1));
-        _characterRepository
-            .FactExistsAsync(Arg.Any<IAsyncTransaction>(), FactId)
-            .Returns(new EntityExistence(true, 1));
-        _characterRepository
-            .FactConnectionExistsAsync(Arg.Any<IAsyncTransaction>(), CharacterId, FactId)
-            .Returns(false);
-
-        // Act
-        var result = await _sut.InvokeAsync(command);
-
-        // Assert
-        result.IsSuccess.ShouldBeTrue("Connect should succeed when character and fact exist and are not connected");
-        await _characterRepository.Received(1)
-            .ConnectFactToCharacterAsync(Arg.Any<IAsyncTransaction>(), CharacterId, FactId);
-        await _transaction.Received(1).CommitAsync();
-    }
-
-    [Fact]
-    [Trait(Constants.TraitName, Constants.TestTitle)]
-    public async Task InvokeAsync_WhenConnectionAlreadyExists_ReturnsConflictException()
-    {
-        // Arrange
-        var command = new ConnectFactToCharacterCommand(CharacterId, FactId);
+        var command = new DisconnectFactFromCharacterCommand(CharacterId, FactId);
         _characterRepository
             .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), CharacterId)
             .Returns(new EntityExistence(true, 1));
@@ -82,11 +56,10 @@ public class ConnectFactToCharacterCommandHandlerTest
         var result = await _sut.InvokeAsync(command);
 
         // Assert
-        result.IsSuccess.ShouldBeFalse("Connect should fail when the pair is already connected");
-        result.Error.ShouldBeOfType<ConflictException>("Error should be ConflictException");
-        await _characterRepository.DidNotReceive()
-            .ConnectFactToCharacterAsync(Arg.Any<IAsyncTransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>());
-        await _transaction.DidNotReceive().CommitAsync();
+        result.IsSuccess.ShouldBeTrue("Disconnect should succeed when the connection exists");
+        await _characterRepository.Received(1)
+            .DisconnectFactFromCharacterAsync(Arg.Any<IAsyncTransaction>(), CharacterId, FactId);
+        await _transaction.Received(1).CommitAsync();
     }
 
     [Fact]
@@ -94,7 +67,7 @@ public class ConnectFactToCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenCharacterDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new ConnectFactToCharacterCommand(CharacterId, FactId);
+        var command = new DisconnectFactFromCharacterCommand(CharacterId, FactId);
         _characterRepository
             .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), CharacterId)
             .Returns(new EntityExistence(false, 0));
@@ -103,7 +76,7 @@ public class ConnectFactToCharacterCommandHandlerTest
         var result = await _sut.InvokeAsync(command);
 
         // Assert
-        result.IsSuccess.ShouldBeFalse("Connect should fail when character does not exist");
+        result.IsSuccess.ShouldBeFalse("Disconnect should fail when character does not exist");
         result.Error.ShouldBeOfType<NotFoundException>("Error should be NotFoundException");
         await _transaction.DidNotReceive().CommitAsync();
     }
@@ -113,7 +86,7 @@ public class ConnectFactToCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenFactDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new ConnectFactToCharacterCommand(CharacterId, FactId);
+        var command = new DisconnectFactFromCharacterCommand(CharacterId, FactId);
         _characterRepository
             .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), CharacterId)
             .Returns(new EntityExistence(true, 1));
@@ -125,18 +98,17 @@ public class ConnectFactToCharacterCommandHandlerTest
         var result = await _sut.InvokeAsync(command);
 
         // Assert
-        result.IsSuccess.ShouldBeFalse("Connect should fail when fact does not exist");
+        result.IsSuccess.ShouldBeFalse("Disconnect should fail when fact does not exist");
         result.Error.ShouldBeOfType<NotFoundException>("Error should be NotFoundException");
         await _transaction.DidNotReceive().CommitAsync();
     }
 
     [Fact]
     [Trait(Constants.TraitName, Constants.TestTitle)]
-    public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
+    public async Task InvokeAsync_WhenConnectionDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new ConnectFactToCharacterCommand(CharacterId, FactId);
-        var expectedException = new Exception("DB error");
+        var command = new DisconnectFactFromCharacterCommand(CharacterId, FactId);
         _characterRepository
             .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), CharacterId)
             .Returns(new EntityExistence(true, 1));
@@ -146,8 +118,36 @@ public class ConnectFactToCharacterCommandHandlerTest
         _characterRepository
             .FactConnectionExistsAsync(Arg.Any<IAsyncTransaction>(), CharacterId, FactId)
             .Returns(false);
+
+        // Act
+        var result = await _sut.InvokeAsync(command);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse("Disconnect should fail when the connection does not exist");
+        result.Error.ShouldBeOfType<NotFoundException>("Error should be NotFoundException");
+        await _characterRepository.DidNotReceive()
+            .DisconnectFactFromCharacterAsync(Arg.Any<IAsyncTransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>());
+        await _transaction.DidNotReceive().CommitAsync();
+    }
+
+    [Fact]
+    [Trait(Constants.TraitName, Constants.TestTitle)]
+    public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
+    {
+        // Arrange
+        var command = new DisconnectFactFromCharacterCommand(CharacterId, FactId);
+        var expectedException = new Exception("DB error");
         _characterRepository
-            .ConnectFactToCharacterAsync(Arg.Any<IAsyncTransaction>(), CharacterId, FactId)
+            .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), CharacterId)
+            .Returns(new EntityExistence(true, 1));
+        _characterRepository
+            .FactExistsAsync(Arg.Any<IAsyncTransaction>(), FactId)
+            .Returns(new EntityExistence(true, 1));
+        _characterRepository
+            .FactConnectionExistsAsync(Arg.Any<IAsyncTransaction>(), CharacterId, FactId)
+            .Returns(true);
+        _characterRepository
+            .DisconnectFactFromCharacterAsync(Arg.Any<IAsyncTransaction>(), CharacterId, FactId)
             .ThrowsAsync(expectedException);
 
         // Act

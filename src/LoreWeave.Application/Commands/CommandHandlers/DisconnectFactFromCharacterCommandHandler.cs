@@ -12,15 +12,15 @@ using ILogger = Serilog.ILogger;
 
 namespace LoreWeave.Application.Commands.CommandHandlers;
 
-public class ConnectFactToCharacterCommandHandler
-    : IAsyncRequestHandler<ConnectFactToCharacterCommand, Result<Exception>>
+public class DisconnectFactFromCharacterCommandHandler
+    : IAsyncRequestHandler<DisconnectFactFromCharacterCommand, Result<Exception>>
 {
     private readonly IExistsCharacter _existsCharacter;
     private readonly IFactRepository _factRepository;
     private readonly ILogger _logger;
     private readonly ITransactionFactory<IAsyncTransaction> _transactionFactory;
 
-    public ConnectFactToCharacterCommandHandler(
+    public DisconnectFactFromCharacterCommandHandler(
         ITransactionFactory<IAsyncTransaction> transactionFactory,
         ICharacterRepository characterRepository,
         ILogger logger)
@@ -32,7 +32,7 @@ public class ConnectFactToCharacterCommandHandler
     }
 
     public async ValueTask<Result<Exception>> InvokeAsync(
-        ConnectFactToCharacterCommand request,
+        DisconnectFactFromCharacterCommand request,
         CancellationToken cancellationToken = new())
     {
         await using var transaction = await _transactionFactory.CreateAsync();
@@ -44,7 +44,7 @@ public class ConnectFactToCharacterCommandHandler
             if (!characterExists.Exists)
             {
                 _logger.Error(
-                    "Connect fact fails for not existing character: {CharacterId}",
+                    "Disconnect fact fails for not existing character: {CharacterId}",
                     request.CharacterId);
                 return new NotFoundException(Entities.Character);
             }
@@ -53,7 +53,7 @@ public class ConnectFactToCharacterCommandHandler
 
             if (!factExists.Exists)
             {
-                _logger.Error("Connect fact fails for not existing fact: {FactId}", request.FactId);
+                _logger.Error("Disconnect fact fails for not existing fact: {FactId}", request.FactId);
                 return new NotFoundException(Entities.Fact);
             }
 
@@ -62,19 +62,19 @@ public class ConnectFactToCharacterCommandHandler
                 request.CharacterId,
                 request.FactId);
 
-            if (connectionExists)
+            if (!connectionExists)
             {
                 _logger.Error(
-                    "Connect fact fails because character {CharacterId} is already connected to fact {FactId}",
+                    "Disconnect fact fails because character {CharacterId} is not connected to fact {FactId}",
                     request.CharacterId,
                     request.FactId);
-                return new ConflictException("Character is already connected to the fact.");
+                return new NotFoundException(Entities.FactConnection);
             }
 
-            await _factRepository.ConnectFactToCharacterAsync(transaction, request.CharacterId, request.FactId);
+            await _factRepository.DisconnectFactFromCharacterAsync(transaction, request.CharacterId, request.FactId);
             await transaction.CommitAsync();
             _logger.Information(
-                "Fact {FactId} connected to character {CharacterId}",
+                "Fact {FactId} disconnected from character {CharacterId}",
                 request.FactId,
                 request.CharacterId);
         }
@@ -83,7 +83,7 @@ public class ConnectFactToCharacterCommandHandler
             await transaction.RollbackAsync();
             _logger.Error(
                 exception,
-                "Error connecting fact {FactId} to character {CharacterId}",
+                "Error disconnecting fact {FactId} from character {CharacterId}",
                 request.FactId,
                 request.CharacterId);
 

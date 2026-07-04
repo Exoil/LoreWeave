@@ -37,6 +37,7 @@ public static class HandlerConfiguration
             .AddAsyncRequestHandler<UpdateFactCommandHandler>()
             .AddAsyncRequestHandler<DeleteFactCommandHandler>()
             .AddAsyncRequestHandler<ConnectFactToCharacterCommandHandler>()
+            .AddAsyncRequestHandler<DisconnectFactFromCharacterCommandHandler>()
             .AddAsyncRequestHandler<GetFactByIdQueryHandler>();
 
         return services;

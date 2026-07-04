@@ -339,9 +339,25 @@ paths:
       summary: Connect an existing fact to an existing character.
       description: >-
         Creates a HAS_FACT connection between the character and the fact.
-        Idempotent — connecting the same pair again keeps a single
-        connection; a character can never be connected twice to the same
-        fact.
+        A character can never be connected twice to the same fact —
+        connecting an already connected pair returns 409 Conflict.
+      parameters:
+        - $ref: '#/components/parameters/CharacterId'
+        - $ref: '#/components/parameters/FactId'
+      responses:
+        '204':
+          description: No Content
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      operationId: disconnectFactFromCharacter
+      summary: Delete the connection between a character and a fact.
+      description: >-
+        Removes the HAS_FACT connection between the character and the fact.
+        The fact itself is not deleted. Returns 404 when the character, the
+        fact, or the connection does not exist.
       parameters:
         - $ref: '#/components/parameters/CharacterId'
         - $ref: '#/components/parameters/FactId'
@@ -461,6 +477,12 @@ components:
             $ref: '#/components/schemas/ProblemDetails'
     PreconditionFailed:
       description: Precondition Failed
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    Conflict:
+      description: The request conflicts with the current state of the resource
       content:
         application/problem+json:
           schema:

@@ -397,4 +397,36 @@ public class CharacterRepository : ICharacterRepository
 
         await transaction.RunAsync(query);
     }
+
+    public async Task<bool> FactConnectionExistsAsync(IAsyncTransaction transaction, Guid characterId, Guid factId)
+    {
+        const string queryString = @"
+            MATCH (ch:Character {Id: $CharacterId})-[r:HAS_FACT]->(f:Fact {Id: $FactId})
+            RETURN count(r) > 0 AS Exists";
+        var query = new Query(queryString, new
+        {
+            CharacterId = characterId.ToDatabaseId(),
+            FactId = factId.ToDatabaseId()
+        });
+
+        var cursorResult = await transaction.RunAsync(query);
+
+        var records = await cursorResult.ToListAsync();
+
+        return records.Count > 0 && records[0]["Exists"].As<bool>();
+    }
+
+    public async Task DisconnectFactFromCharacterAsync(IAsyncTransaction transaction, Guid characterId, Guid factId)
+    {
+        const string queryString = @"
+            MATCH (ch:Character {Id: $CharacterId})-[r:HAS_FACT]->(f:Fact {Id: $FactId})
+            DELETE r";
+        var query = new Query(queryString, new
+        {
+            CharacterId = characterId.ToDatabaseId(),
+            FactId = factId.ToDatabaseId()
+        });
+
+        await transaction.RunAsync(query);
+    }
 }

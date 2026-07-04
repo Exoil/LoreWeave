@@ -211,6 +211,19 @@ public static class CharacterEndpoints
                             new ConnectFactToCharacterCommand(characterId, factId),
                             Results.NoContent,
                             cancellationToken));
+
+            endpointGroup
+                .MapDelete(
+                    "{characterId:guid}/facts/{factId:guid}",
+                    async (
+                            [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid characterId,
+                            [FromRoute] Guid factId,
+                            CancellationToken cancellationToken = default) =>
+                        await responseResolver.GetResult<DisconnectFactFromCharacterCommand>(
+                            new DisconnectFactFromCharacterCommand(characterId, factId),
+                            Results.NoContent,
+                            cancellationToken));
         }
     }
 }
