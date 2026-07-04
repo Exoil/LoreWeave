@@ -33,6 +33,14 @@ public static class RecordExtensions
                     relation["Description"].As<string>(),
                     relation["IsStrong"].As<bool>()))
                 .ToList()
+                .AsReadOnly(),
+            record["Facts"]
+                .As<List<IReadOnlyDictionary<string, object>>>()
+                .Select(fact => new FactDetail(
+                    fact["Id"].As<string>().DatabaseIdToGuid(),
+                    fact["Title"].As<string>(),
+                    fact["Content"].As<string>()))
+                .ToList()
                 .AsReadOnly());
 
         return character;

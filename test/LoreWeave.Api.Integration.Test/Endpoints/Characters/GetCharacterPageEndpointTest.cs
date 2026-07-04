@@ -18,6 +18,8 @@ public class GetCharacterPageEndpointTest : IntegrationTestBase
 
     public const string KnowEndpoint = "/v1/characters/knows";
 
+    private static string FactEndpoint(Guid characterId) => $"{Endpoint}/{characterId}/facts";
+
     [Theory]
     [InlineData(1, 10, "Name", "Asc")]
     [InlineData(1, 10, "Name", "Desc")]
@@ -80,6 +82,20 @@ public class GetCharacterPageEndpointTest : IntegrationTestBase
             await Client.PostAsJsonAsync(KnowEndpoint, createRelationRequest, CancellationToken.None);
         }
 
+        var factIds = new List<Guid>();
+        foreach (var characterId in characterIds)
+        {
+            var createFactRequest = new
+            {
+                Title = "TestFact",
+                Content = "TestContent"
+            };
+
+            var factResponse = await Client.PutAsJsonAsync(
+                FactEndpoint(characterId), createFactRequest, CancellationToken.None);
+            factIds.Add(await factResponse.Content.ReadFromJsonAsync<Guid>());
+        }
+
         var endpoint =
             $"{Endpoint}?pageNumber={pageNumber}&pageSize={pageSize}&sortType={sortType}&sortOrder={sortOrder}";
 
@@ -98,6 +114,61 @@ public class GetCharacterPageEndpointTest : IntegrationTestBase
         list.ShouldAllBe(c => c.KnowCharacters.First().Description == "Test");
         list.ShouldAllBe(c => c.KnowCharacters.First().IsStrongRelation);
         list.All(c => characterIds.Contains(c.KnowCharacters.First().CharacterId)).ShouldBeTrue();
+        list.ShouldAllBe(c => c.Facts.Count == 1);
+        list.ShouldAllBe(c => c.Facts.First().Title == "TestFact");
+        list.ShouldAllBe(c => c.Facts.First().Content == "TestContent");
+        list.All(c => factIds.Contains(c.Facts.First().Id)).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task GetCharacterPage_WithFacts_ReturnsConnectedFactsPerCharacter()
+    {
+        // Arrange
+        await _neo4JContainerRunner.ResetAsync();
+
+        var withFactsResponse = await Client.PostAsJsonAsync(
+            Endpoint, new { Name = "CharacterWithFacts" }, CancellationToken.None);
+        var withFactsId = await withFactsResponse.Content.ReadFromJsonAsync<Guid>();
+
+        var withoutFactsResponse = await Client.PostAsJsonAsync(
+            Endpoint, new { Name = "CharacterWithoutFacts" }, CancellationToken.None);
+        var withoutFactsId = await withoutFactsResponse.Content.ReadFromJsonAsync<Guid>();
+
+        var expectedFacts = new[]
+        {
+            new { Title = "FactA", Content = "ContentA" },
+            new { Title = "FactB", Content = "ContentB" }
+        };
+
+        var factIds = new List<Guid>();
+        foreach (var fact in expectedFacts)
+        {
+            var factResponse = await Client.PutAsJsonAsync(
+                FactEndpoint(withFactsId), fact, CancellationToken.None);
+            factIds.Add(await factResponse.Content.ReadFromJsonAsync<Guid>());
+        }
+
+        var endpoint = $"{Endpoint}?pageNumber=1&pageSize=10&sortType=Name&sortOrder=Asc";
+
+        // Act
+        var response = await Client.GetAsync(endpoint);
+
+        // Assert
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var content = await response.Content.ReadFromJsonAsync<IEnumerable<CharacterPayloadWithRelations>>();
+        var list = content!.ToList();
+
+        list.Count.ShouldBe(2);
+
+        var withFacts = list.Single(c => c.Id == withFactsId);
+        withFacts.Facts.Count.ShouldBe(2);
+        withFacts.Facts.Select(f => f.Id).ShouldBe(factIds, ignoreOrder: true);
+        withFacts.Facts.Select(f => f.Title).ShouldBe(expectedFacts.Select(f => f.Title), ignoreOrder: true);
+        withFacts.Facts.Select(f => f.Content).ShouldBe(expectedFacts.Select(f => f.Content), ignoreOrder: true);
+
+        var withoutFacts = list.Single(c => c.Id == withoutFactsId);
+        withoutFacts.Facts.ShouldBeEmpty();
     }
 
 

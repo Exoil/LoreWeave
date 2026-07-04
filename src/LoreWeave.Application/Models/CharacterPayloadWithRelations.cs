@@ -10,4 +10,6 @@ public record CharacterPayloadWithRelations(
     [property: JsonPropertyName("name")]
     string Name,
     [property: JsonPropertyName("knowCharacters")]
-    IReadOnlyCollection<KnowCharacterRelationPayload> KnowCharacters);
+    IReadOnlyCollection<KnowCharacterRelationPayload> KnowCharacters,
+    [property: JsonPropertyName("facts")]
+    IReadOnlyCollection<CharacterFactPayload> Facts);

@@ -26,6 +26,24 @@ paths:
                 maxItems: 100
                 items:
                   $ref: '#/components/schemas/CharacterPayloadWithRelations'
+              examples:
+                page:
+                  summary: One page with relations and facts
+                  value:
+                    - id: "0b6c1f8a-9c2e-4a18-93a5-3a5e3a5e3a5e"
+                      name: "Gandalf"
+                      knowCharacters:
+                        - characterId: "11111111-1111-4111-8111-111111111111"
+                          description: "Met in the Shire"
+                          isStrongRelation: true
+                      facts:
+                        - id: "33333333-3333-4333-8333-333333333333"
+                          title: "Wizard of the Secret Fire"
+                          content: "Wielder of Narya, one of the three Elven rings."
+                    - id: "11111111-1111-4111-8111-111111111111"
+                      name: "Frodo"
+                      knowCharacters: [ ]
+                      facts: [ ]
         '400':
           $ref: '#/components/responses/BadRequest'
     post:
@@ -536,7 +554,7 @@ components:
     CharacterPayloadWithRelations:
       type: object
       title: CharacterPayloadWithRelations
-      required: [ id, name, knowCharacters ]
+      required: [ id, name, knowCharacters, facts ]
       properties:
         id:
           type: string
@@ -551,6 +569,29 @@ components:
           maxItems: 50
           items:
             $ref: '#/components/schemas/KnowCharacterRelationPayload'
+        facts:
+          type: array
+          description: Facts connected to the character via HAS_FACT
+          minItems: 0
+          maxItems: 50
+          items:
+            $ref: '#/components/schemas/CharacterFactPayload'
+    CharacterFactPayload:
+      type: object
+      title: CharacterFactPayload
+      required: [ id, title, content ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        content:
+          type: string
+          minLength: 1
+          maxLength: 512
     KnowCharacterRelationPayload:
       type: object
       title: KnowCharacterRelationPayload
