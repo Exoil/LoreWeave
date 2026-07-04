@@ -24,8 +24,8 @@ guides for best practices in routing, models, and other API components.
 |-------|---------|----------------|
 | API | `LoreWeave.Api` | HTTP endpoints, DTOs, mapping, exception → HTTP |
 | Application | `LoreWeave.Application` | CQRS handlers (MessagePipe), orchestration |
-| Domain | `LoreWeave.Domain` | Entities, repository contracts, domain exceptions |
-| Infrastructure | `LoreWeave.Infrastructure` | Neo4j repositories, `TransactionFactory` |
+| Domain | `LoreWeave.Domain` | Entities, repository contracts (role interfaces), transaction abstraction, domain exceptions |
+| Infrastructure | `LoreWeave.Infrastructure` | Neo4j repositories, `Neo4jTransactionFactory` |
 
 Dependency direction: `Api → Application → Domain ← Infrastructure`. Domain
 references nothing outside itself.

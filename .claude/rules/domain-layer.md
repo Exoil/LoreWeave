@@ -11,8 +11,12 @@ These rules apply when editing files under `src/LoreWeave.Domain/`.
   `Version` property.
 - Constructors take a Domain *command* record (e.g. `CreateCharacter`) — not
   loose parameters.
-- Repository interfaces live in `Domain.Repositories`; they always take an
-  `IAsyncTransaction` as the **first** argument.
+- Repository interfaces live in `Domain.Repositories.<Entity>`
+  (`Characters/`, `Facts/`, `Knows/`), split by role: `IExists<Entity>`,
+  `I<Entity>Reader`, `I<Entity>Writer` (plus `IFactConnection`). They always
+  take the storage-agnostic `ITransaction` as the **first** argument.
+- The transaction abstraction (`ITransaction`, `ITransactionFactory`) lives in
+  `Domain/Transactions/` and must not reference any database driver.
 - Domain commands/queries are nested under
   `Domain/Entities/<Entity>/Commands/` and `.../Queries/`.
 - The Domain layer references **nothing outside itself** (no Application, no

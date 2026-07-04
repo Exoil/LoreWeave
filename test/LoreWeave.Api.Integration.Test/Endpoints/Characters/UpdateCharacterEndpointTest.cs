@@ -6,7 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using LoreWeave.Domain.Extensions;
-using LoreWeave.Infrastructure.Repositories;
+using LoreWeave.Infrastructure.Repositories.Characters;
+using LoreWeave.Infrastructure.Transactions;
 
 using Shouldly;
 
@@ -139,7 +140,7 @@ public class UpdateCharacterEndpointTest : IntegrationTestBase
         await using var transaction = await session.BeginTransactionAsync();
 
         var characterRepository = new CharacterRepository();
-        var character = await characterRepository.GetAsync(transaction, id);
+        var character = await characterRepository.GetAsync(new Neo4jTransaction(transaction), id);
 
         character.Name.ShouldBe(name);
     }

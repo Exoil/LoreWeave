@@ -5,7 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using LoreWeave.Domain.Extensions;
-using LoreWeave.Infrastructure.Repositories;
+using LoreWeave.Infrastructure.Repositories.Characters;
+using LoreWeave.Infrastructure.Transactions;
 
 using Shouldly;
 
@@ -55,7 +56,7 @@ public class DeleteCharacterEndpointTest : IntegrationTestBase
         await using var transaction = await session.BeginTransactionAsync();
 
         var characterRepository = new CharacterRepository();
-        var exists = await characterRepository.CharacterExistsAsync(transaction, id);
+        var exists = await characterRepository.CharacterExistsAsync(new Neo4jTransaction(transaction), id);
 
         exists.Exists.ShouldBeFalse();
     }

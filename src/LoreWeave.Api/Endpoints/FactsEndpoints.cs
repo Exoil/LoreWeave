@@ -5,9 +5,9 @@ using LoreWeave.Api.Constants;
 using LoreWeave.Api.Dtos.Facts;
 using LoreWeave.Api.Dtos.Maps;
 using LoreWeave.Api.ResultResolvers;
-using LoreWeave.Application.Commands;
+using LoreWeave.Application.Commands.Facts;
 using LoreWeave.Application.Models;
-using LoreWeave.Application.Queries;
+using LoreWeave.Application.Queries.Facts;
 
 namespace LoreWeave.Api.Endpoints;
 

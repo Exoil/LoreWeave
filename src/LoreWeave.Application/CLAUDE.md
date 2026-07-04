@@ -35,39 +35,45 @@ return new Result<Exception>(); // void success
 
 ## Adding a Command
 
-### 1. Create the command record — `Commands/`
+Commands and queries are grouped **per entity**: `Commands/Characters/`,
+`Commands/Facts/`, `Commands/Knows/` (and the same under `Queries/`), each
+with a nested `CommandHandlers/` / `QueryHandlers/` folder.
+
+### 1. Create the command record — `Commands/<Entity>/`
 ```csharp
-namespace LoreWeave.Application.Commands;
+namespace LoreWeave.Application.Commands.Characters;
 
 public record MyOperationCommand(Guid Id, string SomeField);
 ```
 - Identifiers are `Guid`. Generate new entity ids with `Guid.CreateVersion7()`.
 - Use primitive types only — no domain objects in command records.
 
-### 2. Create the handler — `Commands/CommandHandlers/`
+### 2. Create the handler — `Commands/<Entity>/CommandHandlers/`
 ```csharp
 using MessagePipe;
-using Neo4j.Driver;
 using LoreWeave.Application.Models;
-using LoreWeave.Domain.Factories;
-using LoreWeave.Domain.Repositories;
+using LoreWeave.Domain.Repositories.Characters;
+using LoreWeave.Domain.Transactions;
 using ILogger = Serilog.ILogger;
 
-namespace LoreWeave.Application.Commands.CommandHandlers;
+namespace LoreWeave.Application.Commands.Characters.CommandHandlers;
 
 public class MyOperationCommandHandler : IAsyncRequestHandler<MyOperationCommand, Result<Exception>>
 {
-    private readonly ICharacterRepository _characterRepository;
+    private readonly IExistsCharacter _existsCharacter;
+    private readonly ICharacterWriter _characterWriter;
     private readonly ILogger _logger;
-    private readonly ITransactionFactory<IAsyncTransaction> _transactionFactory;
+    private readonly ITransactionFactory _transactionFactory;
 
     public MyOperationCommandHandler(
-        ITransactionFactory<IAsyncTransaction> transactionFactory,
-        ICharacterRepository characterRepository,
+        ITransactionFactory transactionFactory,
+        IExistsCharacter existsCharacter,
+        ICharacterWriter characterWriter,
         ILogger logger)
     {
         _transactionFactory = transactionFactory;
-        _characterRepository = characterRepository;
+        _existsCharacter = existsCharacter;
+        _characterWriter = characterWriter;
         _logger = logger;
     }
 
@@ -99,6 +105,7 @@ public class MyOperationCommandHandler : IAsyncRequestHandler<MyOperationCommand
 
 **Rules:**
 - Always `await using var transaction = await _transactionFactory.CreateAsync()` — never pass raw sessions.
+- Inject only the Domain **role interfaces** the handler needs (`IExists<Entity>`, `I<Entity>Reader`, `I<Entity>Writer`, `IFactConnection`) — never a whole repository, never driver types (`Neo4j.Driver` must not appear in this layer).
 - Always `CommitAsync()` on success, `RollbackAsync()` in catch.
 - Ids are `Guid` end-to-end — pass `request.Id` straight to the repository, no conversion.
 - Return domain exceptions (`NotFoundException`, `PreconditionException`, `UnprocessableContentException`) directly — they implicitly convert to `Result`.
@@ -113,9 +120,9 @@ public class MyOperationCommandHandler : IAsyncRequestHandler<MyOperationCommand
 
 ## Adding a Query
 
-### 1. Create the query record — `Queries/`
+### 1. Create the query record — `Queries/<Entity>/`
 ```csharp
-namespace LoreWeave.Application.Queries;
+namespace LoreWeave.Application.Queries.Characters;
 
 public record MyQuery(Guid Id);
 ```
@@ -127,7 +134,7 @@ namespace LoreWeave.Application.Models;
 public record MyPayload(Guid Id, string Name);
 ```
 
-### 3. Create the handler — `Queries/QueryHandlers/`
+### 3. Create the handler — `Queries/<Entity>/QueryHandlers/`
 ```csharp
 public class MyQueryHandler : IAsyncRequestHandler<MyQuery, Result<MyPayload, Exception>>
 {
@@ -170,7 +177,7 @@ public class MyQueryHandler : IAsyncRequestHandler<MyQuery, Result<MyPayload, Ex
 
 When an operation requires a character to exist:
 ```csharp
-var exists = await _characterRepository.ExistsAsync(transaction, request.Id);
+var exists = await _existsCharacter.CharacterExistsAsync(transaction, request.Id);
 
 if (!exists.Exists)
 {

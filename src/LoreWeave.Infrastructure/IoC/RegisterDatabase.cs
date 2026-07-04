@@ -1,14 +1,16 @@
-using System.Diagnostics;
-
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 using Neo4j.Driver;
 
-using LoreWeave.Domain.Factories;
-using LoreWeave.Domain.Repositories;
-using LoreWeave.Infrastructure.Factories;
-using LoreWeave.Infrastructure.Repositories;
+using LoreWeave.Domain.Repositories.Characters;
+using LoreWeave.Domain.Repositories.Facts;
+using LoreWeave.Domain.Repositories.Knows;
+using LoreWeave.Domain.Transactions;
+using LoreWeave.Infrastructure.Repositories.Characters;
+using LoreWeave.Infrastructure.Repositories.Facts;
+using LoreWeave.Infrastructure.Repositories.Knows;
+using LoreWeave.Infrastructure.Transactions;
 
 namespace LoreWeave.Infrastructure.IoC;
 
@@ -32,7 +34,28 @@ public static class RegisterDatabase
         serviceCollection
             .AddScoped<IAsyncSession>(serviceProvider =>
                 serviceProvider.GetRequiredService<IDriver>().AsyncSession())
-            .AddScoped<ITransactionFactory<IAsyncTransaction>, TransactionFactory>()
-            .AddScoped<ICharacterRepository, CharacterRepository>();
+            .AddScoped<ITransactionFactory, Neo4jTransactionFactory>();
+
+        serviceCollection
+            .AddScoped<CharacterRepository>()
+            .AddScoped<IExistsCharacter>(serviceProvider => serviceProvider.GetRequiredService<CharacterRepository>())
+            .AddScoped<ICharacterReader>(serviceProvider => serviceProvider.GetRequiredService<CharacterRepository>())
+            .AddScoped<ICharacterWriter>(serviceProvider => serviceProvider.GetRequiredService<CharacterRepository>());
+
+        serviceCollection
+            .AddScoped<FactRepository>()
+            .AddScoped<IExistsFact>(serviceProvider => serviceProvider.GetRequiredService<FactRepository>())
+            .AddScoped<IFactReader>(serviceProvider => serviceProvider.GetRequiredService<FactRepository>())
+            .AddScoped<IFactWriter>(serviceProvider => serviceProvider.GetRequiredService<FactRepository>())
+            .AddScoped<IFactConnection>(serviceProvider => serviceProvider.GetRequiredService<FactRepository>());
+
+        serviceCollection
+            .AddScoped<KnowRelationRepository>()
+            .AddScoped<IExistsKnowRelation>(serviceProvider
+                => serviceProvider.GetRequiredService<KnowRelationRepository>())
+            .AddScoped<IKnowRelationReader>(serviceProvider
+                => serviceProvider.GetRequiredService<KnowRelationRepository>())
+            .AddScoped<IKnowRelationWriter>(serviceProvider
+                => serviceProvider.GetRequiredService<KnowRelationRepository>());
     }
 }

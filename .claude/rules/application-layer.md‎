@@ -9,7 +9,11 @@ Full handler templates live in `src/LoreWeave.Application/CLAUDE.md`. This
 rule is the short reminder of the cross-cutting Application-layer conventions.
 
 - Every operation is a `record Command` or `record Query` plus an
-  `IAsyncRequestHandler<TRequest, Result<...>>`.
+  `IAsyncRequestHandler<TRequest, Result<...>>`, grouped per entity under
+  `Commands/<Entity>/` and `Queries/<Entity>/`.
+- Handlers depend only on the Domain role interfaces they actually call
+  (e.g. `IExistsCharacter`, `IFactWriter`) plus `ITransactionFactory` — never
+  on a fat repository and never on database driver types.
 - `LogFilter<TRequest, TResponse>` wraps all handlers automatically — no
   per-handler logging setup.
 - Handlers return one of:
