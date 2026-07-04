@@ -1,3 +1,4 @@
+using LoreWeave.Api.Dtos.Characters;
 using LoreWeave.Application.Models;
 
 namespace LoreWeave.Api.Dtos.Maps;

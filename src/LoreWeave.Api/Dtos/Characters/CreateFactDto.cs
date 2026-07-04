@@ -1,8 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-
 using LoreWeave.Application.Commands;
 
-namespace LoreWeave.Api.Dtos;
+using System.ComponentModel.DataAnnotations;
+
+namespace LoreWeave.Api.Dtos.Characters;
 
 public record CreateFactDto(
     [StringLength(100, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
