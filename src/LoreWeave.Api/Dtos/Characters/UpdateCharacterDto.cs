@@ -13,7 +13,7 @@ public record UpdateCharacterDto(
     public UpdateCharacterCommand ToCommand(Guid id, string version) => new(
         id,
         Name,
-        int.Parse(
+        ushort.Parse(
             version
                 .Replace(
                     "\"",

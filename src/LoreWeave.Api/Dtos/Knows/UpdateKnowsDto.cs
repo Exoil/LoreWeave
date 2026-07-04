@@ -15,7 +15,7 @@ public record UpdateKnowsDto(
             to,
             Description,
             IsStrongRelation,
-            int.Parse(
+            ushort.Parse(
                 version
                     .Replace(
                         "\"",

@@ -69,7 +69,7 @@ public class GetKnowRelationQueryHandlerTest
         result.Value.ToCharacterId.ShouldBe(_toGuid, "Returned ToCharacterId should match the request");
         result.Value.Description.ShouldBe("Knows well", "Returned Description should match the relation");
         result.Value.IsStrongRelation.ShouldBeTrue("Returned IsStrongRelation should match the relation");
-        result.Value.Version.ShouldBe(3, "Returned Version should match the relation version");
+        result.Value.Version.ShouldBe((ushort)3, "Returned Version should match the relation version");
         result.Value.Etag.ShouldBe("\"3\"", "Etag should wrap the version");
     }
 
@@ -81,7 +81,7 @@ public class GetKnowRelationQueryHandlerTest
         var query = new GetKnowRelationQuery(_fromGuid, _toGuid);
         _characterRepository
             .KnowRelationExistsAsync(Arg.Any<IAsyncTransaction>(), _fromGuid, _toGuid)
-            .Returns(new EntityExistence(false, -1));
+            .Returns(new EntityExistence(false, 0));
 
         // Act
         var result = await _sut.InvokeAsync(query);

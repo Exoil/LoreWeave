@@ -276,14 +276,21 @@ paths:
       summary: Get a fact by id.
       parameters:
         - $ref: '#/components/parameters/Id'
-      responses: 
+      responses:
         '200':
           description: Fact found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/FactDto'
-          headers: 
+              examples:
+                standard:
+                  summary: A fact of a character
+                  value:
+                    id: "0b6c1f8a-9c2e-4a18-93a5-3a5e3a5e3a5e"
+                    title: "Bearer of the One Ring"
+                    content: "Carried the One Ring from the Shire to Mount Doom."
+          headers:
             ETag:
               $ref: '#/components/headers/ETag'
         '404':
@@ -300,28 +307,82 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/UpdateFactDto'
+            examples:
+              standard:
+                summary: Update title and content
+                value:
+                  title: "Bearer of the One Ring"
+                  content: "Carried the One Ring from the Shire to Mount Doom."
       responses:
-        '200':
-          description: Ok.
+        '204':
+          description: No Content
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+    delete:
+      operationId: deleteFact
+      summary: Delete a fact by id.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: No Content
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/characters/{characterId}/facts/{factId}:
+    put:
+      operationId: connectFactToCharacter
+      summary: Connect an existing fact to an existing character.
+      description: >-
+        Creates a HAS_FACT connection between the character and the fact.
+        Idempotent — connecting the same pair again keeps a single
+        connection; a character can never be connected twice to the same
+        fact.
+      parameters:
+        - $ref: '#/components/parameters/CharacterId'
+        - $ref: '#/components/parameters/FactId'
+      responses:
+        '204':
+          description: No Content
         '404':
           $ref: '#/components/responses/NotFound'
 
 components:
   headers:
     ETag:
-      description: Entity tag representing the current version
+      description: >-
+        Entity tag representing the current version. Quoted unsigned 16-bit
+        integer, e.g. "1" .. "65535".
       schema:
         type: string
-        minLength: 1
-        maxLength: 50
+        minLength: 3
+        maxLength: 7
   parameters:
     Id:
       name: id
       in: path
       required: true
       description: Character identifier
+      schema:
+        type: string
+        format: uuid
+    CharacterId:
+      name: characterId
+      in: path
+      required: true
+      description: Character identifier
+      schema:
+        type: string
+        format: uuid
+    FactId:
+      name: factId
+      in: path
+      required: true
+      description: Fact identifier
       schema:
         type: string
         format: uuid
@@ -378,11 +439,13 @@ components:
       name: If-Match
       in: header
       required: true
-      description: The ETag version of the character (integer)
+      description: >-
+        The ETag version to match, as an unsigned 16-bit integer (1..65535),
+        optionally quoted.
       schema:
         type: string
         minLength: 1
-        maxLength: 50
+        maxLength: 7
   responses:
     BadRequest:
       description: Bad Request

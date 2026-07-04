@@ -2,6 +2,8 @@ using Neo4j.Driver;
 
 using LoreWeave.Domain.Entities.Characters;
 using LoreWeave.Domain.Entities.Characters.Commands;
+using LoreWeave.Domain.Entities.Facts;
+using LoreWeave.Domain.Entities.Facts.Commands;
 using LoreWeave.Domain.Entities.Knows;
 using LoreWeave.Domain.Extensions;
 using LoreWeave.Domain.Models;
@@ -16,7 +18,7 @@ public static class RecordExtensions
             record["Id"].As<string>().DatabaseIdToGuid(),
             record["Name"].As<string>());
 
-        return new Character(createCharacter, record["Version"].As<int>());
+        return new Character(createCharacter, (ushort)record["Version"].As<int>());
     }
 
     public static CharacterWithKnowRelation ToCharacterWithKnowRelation(this IRecord record)
@@ -36,6 +38,16 @@ public static class RecordExtensions
         return character;
     }
 
+    public static Fact ToFact(this IRecord record)
+    {
+        var createFact = new CreateFact(
+            record["Id"].As<string>().DatabaseIdToGuid(),
+            record["Title"].As<string>(),
+            record["Content"].As<string>());
+
+        return new Fact(createFact, (ushort)record["Version"].As<int>());
+    }
+
     public static KnowRelation ToKnowRelation(this IRecord record) =>
         new(
             record["Id"].As<string>().DatabaseIdToGuid(),
@@ -43,5 +55,5 @@ public static class RecordExtensions
             record["IsStrong"].As<bool>(),
             record["FromCharacterId"].As<string>().DatabaseIdToGuid(),
             record["ToCharacterId"].As<string>().DatabaseIdToGuid(),
-            record["Version"].As<int>());
+            (ushort)record["Version"].As<int>());
 }

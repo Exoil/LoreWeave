@@ -92,7 +92,7 @@ public class CreateFactCommandHandlerTest
         var command = new CreateFactCommand(_characterId, "Title", "Content");
         _characterRepository
             .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), _characterId)
-            .Returns(new EntityExistence(false, -1));
+            .Returns(new EntityExistence(false, 0));
 
         // Act
         var result = await _sut.InvokeAsync(command);

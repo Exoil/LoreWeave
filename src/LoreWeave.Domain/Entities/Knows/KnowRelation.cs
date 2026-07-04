@@ -8,7 +8,7 @@ public sealed class KnowRelation
         bool isStrongRelation,
         Guid fromCharacterId,
         Guid toCharacterId,
-        int version)
+        ushort version)
     {
         Id = id;
         Description = description;
@@ -28,5 +28,5 @@ public sealed class KnowRelation
     
     public bool IsStrongRelation { get; private set; }
 
-    public int Version { get; private set; }
+    public ushort Version { get; private set; }
 }

@@ -1,0 +1,14 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace LoreWeave.Api.Dtos.Facts;
+
+public sealed record FactDto(
+    [property: JsonPropertyName("id")]
+    Guid Id,
+    [StringLength(100, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
+    [property: JsonPropertyName("title")]
+    string Title,
+    [StringLength(512, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
+    [property: JsonPropertyName("content")]
+    string Content);

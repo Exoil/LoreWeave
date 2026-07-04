@@ -198,6 +198,19 @@ public static class CharacterEndpoints
                             data => Results.Created(
                                 new Uri($"/v1/characters/{id}/facts/{data}", UriKind.Relative), data),
                             cancellationToken));
+
+            endpointGroup
+                .MapPut(
+                    "{characterId:guid}/facts/{factId:guid}",
+                    async (
+                            [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid characterId,
+                            [FromRoute] Guid factId,
+                            CancellationToken cancellationToken = default) =>
+                        await responseResolver.GetResult<ConnectFactToCharacterCommand>(
+                            new ConnectFactToCharacterCommand(characterId, factId),
+                            Results.NoContent,
+                            cancellationToken));
         }
     }
 }

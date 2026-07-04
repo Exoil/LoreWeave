@@ -45,6 +45,7 @@ public class Program
         app.UseCors();
         app.MapUtilityEndpoints();
         app.MapCharacterEndpoints();
+        app.MapFactsEndpoints();
 
         return app;
     }

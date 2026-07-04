@@ -5,6 +5,7 @@ using Neo4j.Driver;
 using LoreWeave.Domain.Entities.Characters;
 using LoreWeave.Domain.Entities.Characters.Commands;
 using LoreWeave.Domain.Entities.Characters.Queries;
+using LoreWeave.Domain.Entities.Facts;
 using LoreWeave.Domain.Entities.Facts.Commands;
 using LoreWeave.Domain.Entities.Knows;
 using LoreWeave.Domain.Entities.Knows.Commands;
@@ -53,7 +54,7 @@ public class CharacterRepository : ICharacterRepository
     {
         const string queryString = @"
             MATCH (ch:Character {Id: $Id })
-            RETURN ch IS NOT NULL AS Exists, coalesce(ch.Version, -1) AS Version";
+            RETURN ch IS NOT NULL AS Exists, coalesce(ch.Version, 0) AS Version";
         var query = new Query(queryString, new
         {
             Id = id.ToDatabaseId()
@@ -65,12 +66,12 @@ public class CharacterRepository : ICharacterRepository
 
         if (records.Count == 0)
         {
-            return new EntityExistence(false, -1);
+            return new EntityExistence(false, 0);
         }
 
         var record = records[0];
 
-        return new EntityExistence(record["Exists"].As<bool>(), record["Version"].As<int>());
+        return new EntityExistence(record["Exists"].As<bool>(), (ushort)record["Version"].As<int>());
     }
 
     public async Task DeleteAsync(IAsyncTransaction transaction, DeleteCharacter deleteCharacter)
@@ -173,7 +174,7 @@ public class CharacterRepository : ICharacterRepository
     {
         const string queryString = @"
             MATCH (fromCh:Character {Id: $FromCharacterId})-[r:KNOWS]->(toCh:Character {Id: $ToCharacterId})
-            RETURN r IS NOT NULL AS Exists, coalesce(r.Version, -1) AS Version";
+            RETURN r IS NOT NULL AS Exists, coalesce(r.Version, 0) AS Version";
         var query = new Query(queryString, new
         {
             FromCharacterId = fromCharacterId.ToDatabaseId(),
@@ -186,12 +187,12 @@ public class CharacterRepository : ICharacterRepository
 
         if (records.Count == 0)
         {
-            return new EntityExistence(false, -1);
+            return new EntityExistence(false, 0);
         }
 
         var record = records[0];
 
-        return new EntityExistence(record["Exists"].As<bool>(), record["Version"].As<int>());
+        return new EntityExistence(record["Exists"].As<bool>(), (ushort)record["Version"].As<int>());
     }
 
     public async Task<KnowRelation> GetKnowRelationAsync(
@@ -304,6 +305,94 @@ public class CharacterRepository : ICharacterRepository
             Id = createFact.Id.ToDatabaseId(),
             createFact.Title,
             createFact.Content
+        });
+
+        await transaction.RunAsync(query);
+    }
+
+    public async Task<EntityExistence> FactExistsAsync(IAsyncTransaction transaction, Guid id)
+    {
+        const string queryString = @"
+            MATCH (f:Fact {Id: $Id })
+            RETURN f IS NOT NULL AS Exists, coalesce(f.Version, 0) AS Version";
+        var query = new Query(queryString, new
+        {
+            Id = id.ToDatabaseId()
+        });
+
+        var cursorResult = await transaction.RunAsync(query);
+
+        var records = await cursorResult.ToListAsync();
+
+        if (records.Count == 0)
+        {
+            return new EntityExistence(false, 0);
+        }
+
+        var record = records[0];
+
+        return new EntityExistence(record["Exists"].As<bool>(), (ushort)record["Version"].As<int>());
+    }
+
+    public async Task<Fact> GetFactAsync(IAsyncTransaction transaction, Guid id)
+    {
+        const string queryString = @"
+            MATCH (f:Fact {Id: $Id})
+            RETURN f.Id AS Id, f.Title AS Title, f.Content AS Content, f.Version AS Version";
+        var query = new Query(queryString, new
+        {
+            Id = id.ToDatabaseId()
+        });
+
+        var cursorResult = await transaction.RunAsync(query);
+
+        var fact = await cursorResult
+            .SingleAsync(record
+                => record.ToFact());
+
+        return fact;
+    }
+
+    public async Task UpdateAsync(IAsyncTransaction transaction, UpdateFact updateFact)
+    {
+        const string queryString = @"
+            MATCH (f:Fact {Id: $Id })
+            SET
+                f.Title = $Title,
+                f.Content = $Content,
+                f.Version = f.Version + 1";
+        var query = new Query(queryString, new
+        {
+            Id = updateFact.Id.ToDatabaseId(),
+            updateFact.Title,
+            updateFact.Content
+        });
+
+        await transaction.RunAsync(query);
+    }
+
+    public async Task DeleteAsync(IAsyncTransaction transaction, DeleteFact deleteFact)
+    {
+        const string queryString = @"
+            MATCH (f:Fact {Id: $Id })
+            DETACH DELETE f";
+        var query = new Query(queryString, new
+        {
+            Id = deleteFact.Id.ToDatabaseId()
+        });
+
+        await transaction.RunAsync(query);
+    }
+
+    public async Task ConnectFactToCharacterAsync(IAsyncTransaction transaction, Guid characterId, Guid factId)
+    {
+        const string queryString = @"
+            MATCH (ch:Character {Id: $CharacterId}), (f:Fact {Id: $FactId})
+            MERGE (ch)-[:HAS_FACT]->(f)";
+        var query = new Query(queryString, new
+        {
+            CharacterId = characterId.ToDatabaseId(),
+            FactId = factId.ToDatabaseId()
         });
 
         await transaction.RunAsync(query);

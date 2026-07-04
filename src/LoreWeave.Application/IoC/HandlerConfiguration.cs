@@ -33,7 +33,11 @@ public static class HandlerConfiguration
             .AddAsyncRequestHandler<DeleteKnowRelationCommandHandler>()
             .AddAsyncRequestHandler<FindRelationBetweenCharacterQueryHandler>()
             .AddAsyncRequestHandler<GetKnowRelationQueryHandler>()
-            .AddAsyncRequestHandler<CreateFactCommandHandler>();
+            .AddAsyncRequestHandler<CreateFactCommandHandler>()
+            .AddAsyncRequestHandler<UpdateFactCommandHandler>()
+            .AddAsyncRequestHandler<DeleteFactCommandHandler>()
+            .AddAsyncRequestHandler<ConnectFactToCharacterCommandHandler>()
+            .AddAsyncRequestHandler<GetFactByIdQueryHandler>();
 
         return services;
     }

@@ -1,3 +1,3 @@
 namespace LoreWeave.Application.Commands;
 
-public record UpdateCharacterCommand(Guid Id, string Name, int Version);
+public record UpdateCharacterCommand(Guid Id, string Name, ushort Version);
