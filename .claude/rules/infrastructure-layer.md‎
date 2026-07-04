@@ -7,8 +7,9 @@ paths:
 
 These rules apply when editing files under `src/LoreWeave.Infrastructure/`.
 
-- Repositories implement Domain interfaces and live in
-  `Infrastructure/Repositories/`.
+- Repositories implement the Domain role interfaces and live in
+  `Infrastructure/Repositories/<Entity>/` — one class per entity
+  (`CharacterRepository`, `FactRepository`, `KnowRelationRepository`).
 - Cypher queries are `const string` (or `StringBuilder` for dynamic queries),
   always **parameterized** with anonymous-object parameters. Never concatenate
   user input into Cypher.
@@ -16,7 +17,12 @@ These rules apply when editing files under `src/LoreWeave.Infrastructure/`.
   back with `.DatabaseIdToGuid()`.
 - Result mapping uses extension methods under `Repositories/Extensions/`
   (e.g. `record.ToCharacter()`).
-- `TransactionFactory<IAsyncTransaction>` produces transactions; never resolve
+- `Neo4jTransactionFactory` implements the Domain `ITransactionFactory` and
+  yields `Neo4jTransaction` wrappers. Repository methods take the Domain
+  `ITransaction` and unwrap it with `transaction.AsNeo4jTransaction()`
+  (`Infrastructure/Transactions/TransactionExtensions`). Never resolve
   `IDriver` or sessions directly in repositories.
+- Register new repositories in `IoC/RegisterDatabase.cs`: one scoped concrete
+  class, with each role interface forwarded to it.
 - The Cypher `SET` for updates always increments version:
   `SET ch.Version = ch.Version + 1`.

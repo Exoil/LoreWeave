@@ -1,4 +1,4 @@
-using LoreWeave.Application.Commands;
+using LoreWeave.Application.Commands.Facts;
 
 using System.ComponentModel.DataAnnotations;
 

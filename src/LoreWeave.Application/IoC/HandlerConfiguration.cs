@@ -1,14 +1,14 @@
-
 using MessagePipe;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using LoreWeave.Application.Commands;
-using LoreWeave.Application.Commands.CommandHandlers;
+using LoreWeave.Application.Commands.Characters.CommandHandlers;
+using LoreWeave.Application.Commands.Facts.CommandHandlers;
+using LoreWeave.Application.Commands.Knows.CommandHandlers;
 using LoreWeave.Application.Filters;
-using LoreWeave.Application.Models;
-using LoreWeave.Application.Queries;
-using LoreWeave.Application.Queries.QueryHandlers;
+using LoreWeave.Application.Queries.Characters.QueryHandlers;
+using LoreWeave.Application.Queries.Facts.QueryHandlers;
+using LoreWeave.Application.Queries.Knows.QueryHandlers;
 
 namespace LoreWeave.Application.IoC;
 

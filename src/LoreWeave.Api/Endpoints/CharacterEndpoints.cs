@@ -7,9 +7,12 @@ using LoreWeave.Api.Dtos.Characters;
 using LoreWeave.Api.Dtos.Knows;
 using LoreWeave.Api.Dtos.Maps;
 using LoreWeave.Api.ResultResolvers;
-using LoreWeave.Application.Commands;
+using LoreWeave.Application.Commands.Characters;
+using LoreWeave.Application.Commands.Facts;
+using LoreWeave.Application.Commands.Knows;
 using LoreWeave.Application.Models;
-using LoreWeave.Application.Queries;
+using LoreWeave.Application.Queries.Characters;
+using LoreWeave.Application.Queries.Knows;
 
 namespace LoreWeave.Api.Endpoints;
 

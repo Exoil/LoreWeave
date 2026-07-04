@@ -1,4 +1,4 @@
-using LoreWeave.Application.Commands;
+using LoreWeave.Application.Commands.Characters;
 
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
