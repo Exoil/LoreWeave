@@ -256,7 +256,7 @@ paths:
   /v1/characters/{id}/facts:
     put:
       operationId: addFactToCharacter
-      summary: Add a fact to a character
+      summary: Add a fact to a character.
       parameters:
         - $ref: '#/components/parameters/Id'
       requestBody:
@@ -277,6 +277,27 @@ paths:
               $ref: '#/components/responses/BadRequest'
           '404':
               $ref: '#/components/responses/NotFound'
+              
+  /v1/facts/{id}:
+    put:
+      operationId: updateFact
+      summary: Update a fact.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFactDto'
+      responses:
+        '200':
+          description: Ok.
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
 
 components:
   parameters:
@@ -531,6 +552,19 @@ components:
           type: boolean
     CreateFactDto:
       title: CreateFactDto
+      type: object
+      required: [ title, content ]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        content:
+          type: string
+          minLength: 1
+          maxLength: 512
+    UpdateFactDto:
+      title: UpdateFactDto
       type: object
       required: [ title, content ]
       properties:
