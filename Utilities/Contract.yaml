@@ -59,11 +59,7 @@ paths:
           description: Character found
           headers:
             ETag:
-              description: Entity tag representing the current version
-              schema:
-                type: string
-                minLength: 1
-                maxLength: 50
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -186,11 +182,7 @@ paths:
           description: Knowledge relationship found
           headers:
             ETag:
-              description: Entity tag representing the current version
-              schema:
-                type: string
-                minLength: 1
-                maxLength: 50
+              $ref: '#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -279,6 +271,23 @@ paths:
               $ref: '#/components/responses/NotFound'
               
   /v1/facts/{id}:
+    get:
+      operationId: getFact
+      summary: Get a fact by id.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses: 
+        '200':
+          description: Fact found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FactDto'
+          headers: 
+            ETag:
+              $ref: '#/components/headers/ETag'
+        '404':
+          $ref: '#/components/responses/NotFound'
     put:
       operationId: updateFact
       summary: Update a fact.
@@ -300,6 +309,13 @@ paths:
           $ref: '#/components/responses/NotFound'
 
 components:
+  headers:
+    ETag:
+      description: Entity tag representing the current version
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 50
   parameters:
     Id:
       name: id
@@ -576,4 +592,19 @@ components:
           type: string
           minLength: 1
           maxLength: 512
-        
+    FactDto:
+      title: FactDto
+      type: object
+      required: [ id, title, content ]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        content:
+          type: string
+          minLength: 1
+          maxLength: 512
