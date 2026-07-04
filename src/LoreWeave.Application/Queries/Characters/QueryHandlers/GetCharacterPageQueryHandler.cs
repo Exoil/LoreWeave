@@ -60,6 +60,13 @@ public class GetCharacterPageQueryHandler
                             relation.Description,
                             relation.IsStrongRelation))
                         .ToList()
+                        .AsReadOnly(),
+                    x.Facts
+                        .Select(fact => new CharacterFactPayload(
+                            fact.Id,
+                            fact.Title,
+                            fact.Content))
+                        .ToList()
                         .AsReadOnly()))
                 .ToList()
                 .AsReadOnly();

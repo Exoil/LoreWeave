@@ -119,6 +119,8 @@ public class CharacterRepository : IExistsCharacter, ICharacterReader, ICharacte
             .AppendLine("WHERE $NameFilter = '' OR toLower(ch.Name) CONTAINS toLower($NameFilter)")
             .AppendLine("OPTIONAL MATCH (ch)-[r:KNOWS]->(toCh:Character)")
             .AppendLine("WITH ch, collect(CASE WHEN toCh IS NULL THEN null ELSE {Id: toCh.Id, Description: r.Description, IsStrong: r.IsStrong} END) AS KnowRelations")
+            .AppendLine("OPTIONAL MATCH (ch)-[:HAS_FACT]->(f:Fact)")
+            .AppendLine("WITH ch, KnowRelations, collect(CASE WHEN f IS NULL THEN null ELSE {Id: f.Id, Title: f.Title, Content: f.Content} END) AS Facts")
             .AppendLine("ORDER BY")
             .AppendLine("CASE WHEN $SortType = 'Id' AND $SortOrder = 'Asc' THEN ch.Id END ASC,")
             .AppendLine("CASE WHEN $SortType = 'Id' AND $SortOrder = 'Desc' THEN ch.Id END DESC,")
@@ -126,7 +128,7 @@ public class CharacterRepository : IExistsCharacter, ICharacterReader, ICharacte
             .AppendLine("CASE WHEN $SortType = 'Name' AND $SortOrder = 'Desc' THEN ch.Name END DESC")
             .AppendLine("SKIP $Skip")
             .AppendLine("LIMIT $Limit")
-            .AppendLine("RETURN ch.Id AS Id, ch.Name AS Name, KnowRelations");
+            .AppendLine("RETURN ch.Id AS Id, ch.Name AS Name, KnowRelations, Facts");
 
         var query = new Query(queryStringBuilder.ToString(), new
         {
