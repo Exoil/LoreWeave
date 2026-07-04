@@ -82,11 +82,18 @@ public class ResultsToHttpResponses
                 (int)HttpStatusCode.NotFound,
                 notFoundException.Title,
                 notFoundException.ErrorCode),
-        PreconditionException conflictException
+        PreconditionException preconditionException
+            => Results.Problem(
+                preconditionException.Message,
+                _endpointDisplayName,
+                (int)HttpStatusCode.PreconditionFailed,
+                preconditionException.Title,
+                preconditionException.ErrorCode),
+        ConflictException conflictException
             => Results.Problem(
                 conflictException.Message,
                 _endpointDisplayName,
-                (int)HttpStatusCode.PreconditionFailed,
+                (int)HttpStatusCode.Conflict,
                 conflictException.Title,
                 conflictException.ErrorCode),
         UnprocessableContentException unprocessableContentException

@@ -109,7 +109,7 @@ public class FindRelationBetweenCharacterQueryHandlerTest
 
         _characterRepository
             .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), _fromCharacterGuid)
-            .Returns(new EntityExistence(false, -1));
+            .Returns(new EntityExistence(false, 0));
 
         // Act
         var result = await _sut.InvokeAsync(query);
@@ -131,7 +131,7 @@ public class FindRelationBetweenCharacterQueryHandlerTest
             .Returns(new EntityExistence(true, 1));
         _characterRepository
             .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), _toCharacterGuid)
-            .Returns(new EntityExistence(false, -1));
+            .Returns(new EntityExistence(false, 0));
 
         // Act
         var result = await _sut.InvokeAsync(query);

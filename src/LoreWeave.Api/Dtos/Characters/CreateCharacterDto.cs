@@ -1,9 +1,9 @@
+using LoreWeave.Application.Commands;
+
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-using LoreWeave.Application.Commands;
-
-namespace LoreWeave.Api.Dtos;
+namespace LoreWeave.Api.Dtos.Characters;
 
 public record CreateCharacterDto(
     [property: JsonPropertyName("name")]

@@ -68,7 +68,7 @@ For the canonical schemas list see the top-level `../CLAUDE.md`.
 
 ## Optimistic concurrency
 
-- Entities expose an `int Version` (starts at `1`, incremented on every write).
+- Entities expose a `ushort Version` (starts at `1`, incremented on every write).
 - Update endpoints require an `If-Match` header carrying the version.
   See `HeadersConstants.IfMatch` and the `UpdateCharacterDto.ToCommand(id, version)`
   pattern.

@@ -1,8 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-
 using LoreWeave.Application.Commands;
 
-namespace LoreWeave.Api.Dtos;
+using System.ComponentModel.DataAnnotations;
+
+namespace LoreWeave.Api.Dtos.Knows;
 
 public record UpdateKnowsDto(
     [StringLength(256, MinimumLength = 0, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
@@ -15,7 +15,7 @@ public record UpdateKnowsDto(
             to,
             Description,
             IsStrongRelation,
-            int.Parse(
+            ushort.Parse(
                 version
                     .Replace(
                         "\"",

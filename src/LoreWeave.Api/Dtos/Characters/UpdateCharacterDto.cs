@@ -1,9 +1,9 @@
+using LoreWeave.Application.Commands;
+
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-using LoreWeave.Application.Commands;
-
-namespace LoreWeave.Api.Dtos;
+namespace LoreWeave.Api.Dtos.Characters;
 
 public record UpdateCharacterDto(
     [property: JsonPropertyName("name")]
@@ -13,7 +13,7 @@ public record UpdateCharacterDto(
     public UpdateCharacterCommand ToCommand(Guid id, string version) => new(
         id,
         Name,
-        int.Parse(
+        ushort.Parse(
             version
                 .Replace(
                     "\"",

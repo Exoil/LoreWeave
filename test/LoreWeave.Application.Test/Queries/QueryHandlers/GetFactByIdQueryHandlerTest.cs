@@ -6,10 +6,9 @@ using NSubstitute.ExceptionExtensions;
 using LoreWeave.Application.Models;
 using LoreWeave.Application.Queries;
 using LoreWeave.Application.Queries.QueryHandlers;
-using LoreWeave.Domain.Entities.Characters;
-using LoreWeave.Domain.Entities.Characters.Commands;
+using LoreWeave.Domain.Entities.Facts;
+using LoreWeave.Domain.Entities.Facts.Commands;
 using LoreWeave.Domain.Exceptions;
-using LoreWeave.Domain.Extensions;
 using LoreWeave.Domain.Factories;
 using LoreWeave.Domain.Models;
 using LoreWeave.Domain.Repositories;
@@ -20,14 +19,14 @@ using Shouldly;
 
 namespace LoreWeave.Application.Test.Queries.QueryHandlers;
 
-public class GetCharacterByIdQueryHandlerTest
+public class GetFactByIdQueryHandlerTest
 {
     private readonly ICharacterRepository _characterRepository;
-    private readonly GetCharacterByIdQueryHandler _sut;
+    private readonly GetFactByIdQueryHandler _sut;
 
-    private static readonly Guid _characterGuid = Guid.NewGuid();
+    private static readonly Guid _factGuid = Guid.NewGuid();
 
-    public GetCharacterByIdQueryHandlerTest()
+    public GetFactByIdQueryHandlerTest()
     {
         _characterRepository = Substitute.For<ICharacterRepository>();
         var logger = Substitute.For<ILogger>();
@@ -35,49 +34,51 @@ public class GetCharacterByIdQueryHandlerTest
         var transactionFactory = Substitute.For<ITransactionFactory<IAsyncTransaction>>();
         transactionFactory.CreateAsync().Returns(transaction);
 
-        _sut = new GetCharacterByIdQueryHandler(transactionFactory, _characterRepository, logger);
+        _sut = new GetFactByIdQueryHandler(transactionFactory, _characterRepository, logger);
     }
 
     [Fact]
     [Trait(Constants.TraitName, Constants.TestTitle)]
-    public async Task InvokeAsync_WhenCharacterExists_ReturnsCharacterPayload()
+    public async Task InvokeAsync_WhenFactExists_ReturnsFactPayload()
     {
         // Arrange
-        var query = new GetCharacterByIdQuery(_characterGuid);
-        var character = new Character(new CreateCharacter(_characterGuid, "TestCharacter"), version: 2);
+        var query = new GetFactByIdQuery(_factGuid);
+        var fact = new Fact(new CreateFact(_factGuid, "TestTitle", "TestContent"), version: 2);
         _characterRepository
-            .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), _characterGuid)
-            .Returns(new EntityExistence(true, character.Version));
+            .FactExistsAsync(Arg.Any<IAsyncTransaction>(), _factGuid)
+            .Returns(new EntityExistence(true, fact.Version));
         _characterRepository
-            .GetAsync(Arg.Any<IAsyncTransaction>(), _characterGuid)
-            .Returns(character);
+            .GetFactAsync(Arg.Any<IAsyncTransaction>(), _factGuid)
+            .Returns(fact);
 
         // Act
         var result = await _sut.InvokeAsync(query);
 
         // Assert
-        result.IsSuccess.ShouldBeTrue("Query should succeed when character exists");
-        result.Value.ShouldBeOfType<CharacterPayload>("Result value should be CharacterPayload");
-        result.Value.Id.ShouldBe(_characterGuid, "Returned Id should match the requested Id");
-        result.Value.Name.ShouldBe("TestCharacter", "Returned Name should match the character name");
-        result.Value.Version.ShouldBe((ushort)2, "Returned Version should match the character version");
+        result.IsSuccess.ShouldBeTrue("Query should succeed when fact exists");
+        result.Value.ShouldBeOfType<FactPayload>("Result value should be FactPayload");
+        result.Value.Id.ShouldBe(_factGuid, "Returned Id should match the requested Id");
+        result.Value.Title.ShouldBe("TestTitle", "Returned Title should match the fact title");
+        result.Value.Content.ShouldBe("TestContent", "Returned Content should match the fact content");
+        result.Value.Version.ShouldBe((ushort)2, "Returned Version should match the fact version");
+        result.Value.Etag.ShouldBe("\"2\"", "Etag should wrap the version");
     }
 
     [Fact]
     [Trait(Constants.TraitName, Constants.TestTitle)]
-    public async Task InvokeAsync_WhenCharacterDoesNotExist_ReturnsNotFoundException()
+    public async Task InvokeAsync_WhenFactDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var query = new GetCharacterByIdQuery(_characterGuid);
+        var query = new GetFactByIdQuery(_factGuid);
         _characterRepository
-            .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), _characterGuid)
+            .FactExistsAsync(Arg.Any<IAsyncTransaction>(), _factGuid)
             .Returns(new EntityExistence(false, 0));
 
         // Act
         var result = await _sut.InvokeAsync(query);
 
         // Assert
-        result.IsSuccess.ShouldBeFalse("Query should fail when character does not exist");
+        result.IsSuccess.ShouldBeFalse("Query should fail when fact does not exist");
         result.Error.ShouldBeOfType<NotFoundException>("Error should be NotFoundException");
     }
 
@@ -86,13 +87,13 @@ public class GetCharacterByIdQueryHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsException()
     {
         // Arrange
-        var query = new GetCharacterByIdQuery(_characterGuid);
+        var query = new GetFactByIdQuery(_factGuid);
         var expectedException = new Exception("DB error");
         _characterRepository
-            .CharacterExistsAsync(Arg.Any<IAsyncTransaction>(), _characterGuid)
+            .FactExistsAsync(Arg.Any<IAsyncTransaction>(), _factGuid)
             .Returns(new EntityExistence(true, 1));
         _characterRepository
-            .GetAsync(Arg.Any<IAsyncTransaction>(), _characterGuid)
+            .GetFactAsync(Arg.Any<IAsyncTransaction>(), _factGuid)
             .ThrowsAsync(expectedException);
 
         // Act

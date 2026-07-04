@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace LoreWeave.Api.Dtos;
+namespace LoreWeave.Api.Dtos.Characters;
 
 public record CharacterDto(
     [property: JsonPropertyName("id")]

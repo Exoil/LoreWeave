@@ -1,15 +1,14 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
-using LoreWeave.Application.Commands;
+namespace LoreWeave.Api.Dtos.Facts;
 
-namespace LoreWeave.Api.Dtos;
-
-public record CreateFactDto(
+public sealed record FactDto(
+    [property: JsonPropertyName("id")]
+    Guid Id,
     [StringLength(100, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
+    [property: JsonPropertyName("title")]
     string Title,
     [StringLength(512, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
-    string Content)
-{
-    public CreateFactCommand ToCommand(Guid characterId) =>
-        new(characterId, Title, Content);
-}
+    [property: JsonPropertyName("content")]
+    string Content);

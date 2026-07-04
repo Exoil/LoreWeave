@@ -5,4 +5,4 @@ public record UpdateKnowRelationCommand(
     Guid ToCharacterId,
     string Description,
     bool IsStrongRelation,
-    int Version);
+    ushort Version);

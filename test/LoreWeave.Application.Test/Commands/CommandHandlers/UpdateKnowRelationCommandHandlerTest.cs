@@ -70,7 +70,7 @@ public class UpdateKnowRelationCommandHandlerTest
         var command = new UpdateKnowRelationCommand(FromCharacterId, ToCharacterId, "Updated description", true, CurrentVersion);
         _characterRepository
             .KnowRelationExistsAsync(Arg.Any<IAsyncTransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
-            .Returns(new EntityExistence(false, -1));
+            .Returns(new EntityExistence(false, 0));
 
         // Act
         var result = await _sut.InvokeAsync(command);

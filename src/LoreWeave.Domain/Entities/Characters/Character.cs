@@ -11,11 +11,11 @@ public sealed class Character
         Version = 1;
     }
 
-    public Character(CreateCharacter createCharacter, int version) : this(createCharacter) => Version = version;
+    public Character(CreateCharacter createCharacter, ushort version) : this(createCharacter) => Version = version;
 
     public Guid Id { get; private init; }
 
     public string Name { get; private set; }
 
-    public int Version { get; private set; }
+    public ushort Version { get; private set; }
 }

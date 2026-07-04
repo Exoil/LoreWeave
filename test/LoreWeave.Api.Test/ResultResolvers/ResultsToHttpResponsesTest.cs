@@ -208,6 +208,12 @@ public class ResultsToHttpResponsesTest
                 new List<ValidationMessage>()),
             (int)HttpStatusCode.BadRequest
         };
+
+        yield return new object[]
+        {
+            new ConflictException("Character is already connected to the fact."),
+            (int)HttpStatusCode.Conflict
+        };
     }
 
     // Marker request type for void-style requests must be public for proxy generation

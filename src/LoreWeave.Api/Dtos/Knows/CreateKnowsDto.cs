@@ -1,8 +1,8 @@
-using System.ComponentModel.DataAnnotations;
-
 using LoreWeave.Application.Commands;
 
-namespace LoreWeave.Api.Dtos;
+using System.ComponentModel.DataAnnotations;
+
+namespace LoreWeave.Api.Dtos.Knows;
 
 public record CreateKnowsDto(
     Guid FromCharacterId,
