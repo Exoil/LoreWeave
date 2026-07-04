@@ -28,6 +28,6 @@ public sealed record CreateFact : BaseValueObject
     [StringLength(100, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
     public required string Title { get; init; }
     
-    [StringLength(512, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
+    [StringLength(3000, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
     public required string Content { get; init; }
 }

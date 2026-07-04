@@ -10,7 +10,7 @@ public sealed record UpdateFactDto(
     [StringLength(100, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
     string Title,
     [property: JsonPropertyName("content")]
-    [StringLength(512, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
+    [StringLength(3000, MinimumLength = 1, ErrorMessage = "Value for {0} must be between {1} and {2} characters.")]
     string Content)
 {
     public UpdateFactCommand ToCommand(Guid id, string version) => new(

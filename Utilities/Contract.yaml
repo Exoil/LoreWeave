@@ -591,7 +591,7 @@ components:
         content:
           type: string
           minLength: 1
-          maxLength: 512
+          maxLength: 3000
     KnowCharacterRelationPayload:
       type: object
       title: KnowCharacterRelationPayload
@@ -704,7 +704,7 @@ components:
         content:
           type: string
           minLength: 1
-          maxLength: 512
+          maxLength: 3000
     UpdateFactDto:
       title: UpdateFactDto
       type: object
@@ -717,7 +717,7 @@ components:
         content:
           type: string
           minLength: 1
-          maxLength: 512
+          maxLength: 3000
     FactDto:
       title: FactDto
       type: object
@@ -733,4 +733,4 @@ components:
         content:
           type: string
           minLength: 1
-          maxLength: 512
+          maxLength: 3000
