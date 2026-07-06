@@ -19,7 +19,7 @@ public sealed record GetCharacterPage : BaseValueObject
 
     public uint Page { get; init; }
 
-    [Range(1, 50, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
+    [Range(1, 100, ErrorMessage = "Value for {0} must be between {1} and {2}.")]
 
     public uint Size { get; init; }
 
