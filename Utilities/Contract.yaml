@@ -220,6 +220,8 @@ paths:
                       facts: [ ]
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
     post:
       summary: Create a character
       operationId: createCharacter
@@ -240,6 +242,8 @@ paths:
                 format: uuid
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   
   /v1/boards/{boardId}/characters/{id}:
     parameters:
@@ -319,6 +323,8 @@ paths:
                 format: uuid
         '400':
           $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
   
   /v1/boards/{boardId}/characters/path/{from}/to/{to}:
     parameters:
@@ -712,6 +718,12 @@ components:
             $ref: '#/components/schemas/ProblemDetails'
     Conflict:
       description: The request conflicts with the current state of the resource
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    UnprocessableEntity:
+      description: The request was well-formed but cannot be processed (e.g. a referenced character does not exist on the board)
       content:
         application/problem+json:
           schema:

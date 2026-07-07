@@ -19,6 +19,8 @@ namespace LoreWeave.Application.Test.Queries.Facts.QueryHandlers;
 
 public class GetFactByIdQueryHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsFact _existsFact;
     private readonly IFactReader _factReader;
     private readonly GetFactByIdQueryHandler _sut;
@@ -42,13 +44,13 @@ public class GetFactByIdQueryHandlerTest
     public async Task InvokeAsync_WhenFactExists_ReturnsFactPayload()
     {
         // Arrange
-        var query = new GetFactByIdQuery(_factGuid);
+        var query = new GetFactByIdQuery(BoardId, _factGuid);
         var fact = new Fact(new CreateFact(_factGuid, "TestTitle", "TestContent"), version: 2);
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), _factGuid)
+            .FactExistsAsync(Arg.Any<ITransaction>(), BoardId, _factGuid)
             .Returns(new EntityExistence(true, fact.Version));
         _factReader
-            .GetFactAsync(Arg.Any<ITransaction>(), _factGuid)
+            .GetFactAsync(Arg.Any<ITransaction>(), BoardId, _factGuid)
             .Returns(fact);
 
         // Act
@@ -69,9 +71,9 @@ public class GetFactByIdQueryHandlerTest
     public async Task InvokeAsync_WhenFactDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var query = new GetFactByIdQuery(_factGuid);
+        var query = new GetFactByIdQuery(BoardId, _factGuid);
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), _factGuid)
+            .FactExistsAsync(Arg.Any<ITransaction>(), BoardId, _factGuid)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -87,13 +89,13 @@ public class GetFactByIdQueryHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsException()
     {
         // Arrange
-        var query = new GetFactByIdQuery(_factGuid);
+        var query = new GetFactByIdQuery(BoardId, _factGuid);
         var expectedException = new Exception("DB error");
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), _factGuid)
+            .FactExistsAsync(Arg.Any<ITransaction>(), BoardId, _factGuid)
             .Returns(new EntityExistence(true, 1));
         _factReader
-            .GetFactAsync(Arg.Any<ITransaction>(), _factGuid)
+            .GetFactAsync(Arg.Any<ITransaction>(), BoardId, _factGuid)
             .ThrowsAsync(expectedException);
 
         // Act

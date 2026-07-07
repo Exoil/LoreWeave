@@ -17,6 +17,8 @@ namespace LoreWeave.Application.Test.Commands.Facts.CommandHandlers;
 
 public class DisconnectFactFromCharacterCommandHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsCharacter _existsCharacter;
     private readonly IExistsFact _existsFact;
     private readonly IFactConnection _factConnection;
@@ -44,12 +46,12 @@ public class DisconnectFactFromCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenConnectionExists_ReturnsSuccess()
     {
         // Arrange
-        var command = new DisconnectFactFromCharacterCommand(CharacterId, FactId);
+        var command = new DisconnectFactFromCharacterCommand(BoardId, CharacterId, FactId);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), CharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, CharacterId)
             .Returns(new EntityExistence(true, 1));
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), FactId)
+            .FactExistsAsync(Arg.Any<ITransaction>(), BoardId, FactId)
             .Returns(new EntityExistence(true, 1));
         _factConnection
             .FactConnectionExistsAsync(Arg.Any<ITransaction>(), CharacterId, FactId)
@@ -70,9 +72,9 @@ public class DisconnectFactFromCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenCharacterDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new DisconnectFactFromCharacterCommand(CharacterId, FactId);
+        var command = new DisconnectFactFromCharacterCommand(BoardId, CharacterId, FactId);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), CharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, CharacterId)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -89,12 +91,12 @@ public class DisconnectFactFromCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenFactDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new DisconnectFactFromCharacterCommand(CharacterId, FactId);
+        var command = new DisconnectFactFromCharacterCommand(BoardId, CharacterId, FactId);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), CharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, CharacterId)
             .Returns(new EntityExistence(true, 1));
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), FactId)
+            .FactExistsAsync(Arg.Any<ITransaction>(), BoardId, FactId)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -111,12 +113,12 @@ public class DisconnectFactFromCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenConnectionDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new DisconnectFactFromCharacterCommand(CharacterId, FactId);
+        var command = new DisconnectFactFromCharacterCommand(BoardId, CharacterId, FactId);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), CharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, CharacterId)
             .Returns(new EntityExistence(true, 1));
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), FactId)
+            .FactExistsAsync(Arg.Any<ITransaction>(), BoardId, FactId)
             .Returns(new EntityExistence(true, 1));
         _factConnection
             .FactConnectionExistsAsync(Arg.Any<ITransaction>(), CharacterId, FactId)
@@ -138,13 +140,13 @@ public class DisconnectFactFromCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
     {
         // Arrange
-        var command = new DisconnectFactFromCharacterCommand(CharacterId, FactId);
+        var command = new DisconnectFactFromCharacterCommand(BoardId, CharacterId, FactId);
         var expectedException = new Exception("DB error");
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), CharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, CharacterId)
             .Returns(new EntityExistence(true, 1));
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), FactId)
+            .FactExistsAsync(Arg.Any<ITransaction>(), BoardId, FactId)
             .Returns(new EntityExistence(true, 1));
         _factConnection
             .FactConnectionExistsAsync(Arg.Any<ITransaction>(), CharacterId, FactId)

@@ -9,8 +9,9 @@ public record UpdateKnowsDto(
     string Description,
     bool IsStrongRelation)
 {
-    public UpdateKnowRelationCommand ToCommand(Guid from, Guid to, string version) =>
+    public UpdateKnowRelationCommand ToCommand(Guid boardId, Guid from, Guid to, string version) =>
         new(
+            boardId,
             from,
             to,
             Description,

@@ -48,6 +48,7 @@ public class UpdateKnowRelationCommandHandler : IAsyncRequestHandler<UpdateKnowR
 
             var exists = await _existsKnowRelation.KnowRelationExistsAsync(
                 transaction,
+                request.BoardId,
                 updateKnowRelation.FromCharacterId,
                 updateKnowRelation.ToCharacterId);
 

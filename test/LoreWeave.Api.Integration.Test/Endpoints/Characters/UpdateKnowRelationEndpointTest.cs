@@ -15,9 +15,9 @@ namespace LoreWeave.Api.Integration.Test.Endpoints.Characters;
 
 public class UpdateKnowRelationEndpointTest : IntegrationTestBase
 {
-    public const string CharacterEndpoint = "/v1/characters";
+    private string CharacterEndpoint => $"/v1/boards/{BoardId}/characters";
 
-    public const string KnowEndpoint = "/v1/characters/knows";
+    private string KnowEndpoint => $"/v1/boards/{BoardId}/characters/knows";
 
     [Fact]
     [Trait(Constants.TraitName, Constants.TestTitle)]

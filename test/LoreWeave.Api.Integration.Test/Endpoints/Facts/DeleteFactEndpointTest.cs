@@ -10,8 +10,8 @@ namespace LoreWeave.Api.Integration.Test.Endpoints.Facts;
 
 public class DeleteFactEndpointTest : IntegrationTestBase
 {
-    public const string CharacterEndpoint = "/v1/characters";
-    public const string FactEndpoint = "/v1/facts";
+    private string CharacterEndpoint => $"/v1/boards/{BoardId}/characters";
+    private string FactEndpoint => $"/v1/boards/{BoardId}/facts";
 
     [Fact]
     [Trait(Constants.TraitName, Constants.TestTitle)]

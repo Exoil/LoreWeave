@@ -5,5 +5,5 @@ namespace LoreWeave.Domain.Repositories.Facts;
 
 public interface IExistsFact
 {
-    Task<EntityExistence> FactExistsAsync(ITransaction transaction, Guid id);
+    Task<EntityExistence> FactExistsAsync(ITransaction transaction, Guid boardId, Guid id);
 }

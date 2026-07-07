@@ -11,8 +11,9 @@ public record CreateKnowsDto(
     string Description,
     bool IsStrongRelation)
 {
-    public CreateKnowRelationCommand ToCommand() =>
+    public CreateKnowRelationCommand ToCommand(Guid boardId) =>
         new(
+            boardId,
             FromCharacterId,
             ToCharacterId,
             Description,

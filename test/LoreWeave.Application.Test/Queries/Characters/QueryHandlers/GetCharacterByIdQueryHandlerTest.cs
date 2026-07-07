@@ -20,6 +20,8 @@ namespace LoreWeave.Application.Test.Queries.Characters.QueryHandlers;
 
 public class GetCharacterByIdQueryHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsCharacter _existsCharacter;
     private readonly ICharacterReader _characterReader;
     private readonly GetCharacterByIdQueryHandler _sut;
@@ -43,13 +45,13 @@ public class GetCharacterByIdQueryHandlerTest
     public async Task InvokeAsync_WhenCharacterExists_ReturnsCharacterPayload()
     {
         // Arrange
-        var query = new GetCharacterByIdQuery(_characterGuid);
+        var query = new GetCharacterByIdQuery(BoardId, _characterGuid);
         var character = new Character(new CreateCharacter(_characterGuid, "TestCharacter"), version: 2);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _characterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _characterGuid)
             .Returns(new EntityExistence(true, character.Version));
         _characterReader
-            .GetAsync(Arg.Any<ITransaction>(), _characterGuid)
+            .GetAsync(Arg.Any<ITransaction>(), BoardId, _characterGuid)
             .Returns(character);
 
         // Act
@@ -68,9 +70,9 @@ public class GetCharacterByIdQueryHandlerTest
     public async Task InvokeAsync_WhenCharacterDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var query = new GetCharacterByIdQuery(_characterGuid);
+        var query = new GetCharacterByIdQuery(BoardId, _characterGuid);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _characterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _characterGuid)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -86,13 +88,13 @@ public class GetCharacterByIdQueryHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsException()
     {
         // Arrange
-        var query = new GetCharacterByIdQuery(_characterGuid);
+        var query = new GetCharacterByIdQuery(BoardId, _characterGuid);
         var expectedException = new Exception("DB error");
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _characterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _characterGuid)
             .Returns(new EntityExistence(true, 1));
         _characterReader
-            .GetAsync(Arg.Any<ITransaction>(), _characterGuid)
+            .GetAsync(Arg.Any<ITransaction>(), BoardId, _characterGuid)
             .ThrowsAsync(expectedException);
 
         // Act

@@ -1,3 +1,3 @@
 namespace LoreWeave.Application.Queries.Characters;
 
-public record GetCharacterByIdQuery(Guid Id);
+public record GetCharacterByIdQuery(Guid BoardId, Guid Id);

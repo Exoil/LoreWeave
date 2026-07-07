@@ -15,7 +15,7 @@ namespace LoreWeave.Api.Integration.Test.Endpoints.Characters;
 
 public class UpdateCharacterEndpointTest : IntegrationTestBase
 {
-    public const string Endpoint = "/v1/characters";
+    private string Endpoint => $"/v1/boards/{BoardId}/characters";
 
     [Fact]
     [Trait(Constants.TraitName, Constants.TestTitle)]
@@ -140,7 +140,7 @@ public class UpdateCharacterEndpointTest : IntegrationTestBase
         await using var transaction = await session.BeginTransactionAsync();
 
         var characterRepository = new CharacterRepository();
-        var character = await characterRepository.GetAsync(new Neo4jTransaction(transaction), id);
+        var character = await characterRepository.GetAsync(new Neo4jTransaction(transaction), BoardId, id);
 
         character.Name.ShouldBe(name);
     }

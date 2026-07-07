@@ -10,9 +10,9 @@ namespace LoreWeave.Api.Integration.Test.Endpoints.Characters;
 
 public class CreateFactEndpointTest : IntegrationTestBase
 {
-    public const string CharacterEndpoint = "/v1/characters";
+    private string CharacterEndpoint => $"/v1/boards/{BoardId}/characters";
 
-    private static string FactEndpoint(Guid characterId) => $"/v1/characters/{characterId}/facts";
+    private string FactEndpoint(Guid characterId) => $"{CharacterEndpoint}/{characterId}/facts";
 
     [Fact]
     [Trait(Constants.TraitName, Constants.TestTitle)]

@@ -43,6 +43,7 @@ public class GetKnowRelationQueryHandler
 
             var exists = await _existsKnowRelation.KnowRelationExistsAsync(
                 transaction,
+                request.BoardId,
                 fromCharacterId,
                 toCharacterId);
 
@@ -57,6 +58,7 @@ public class GetKnowRelationQueryHandler
 
             var knowRelation = await _knowRelationReader.GetKnowRelationAsync(
                 transaction,
+                request.BoardId,
                 fromCharacterId,
                 toCharacterId);
 

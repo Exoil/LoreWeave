@@ -49,6 +49,7 @@ public class CreateKnowRelationCommandHandler : IAsyncRequestHandler<CreateKnowR
 
             var fromCharacterExists = await _existsCharacter.CharacterExistsAsync(
                 transaction,
+                request.BoardId,
                 createKnowRelation.FromCharacterId);
 
             if (!fromCharacterExists.Exists)
@@ -61,6 +62,7 @@ public class CreateKnowRelationCommandHandler : IAsyncRequestHandler<CreateKnowR
 
             var toCharacterExists = await _existsCharacter.CharacterExistsAsync(
                 transaction,
+                request.BoardId,
                 createKnowRelation.ToCharacterId);
 
             if (!toCharacterExists.Exists)

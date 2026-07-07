@@ -22,7 +22,7 @@ public static class CharacterEndpoints
     {
         public void MapCharacterEndpoints() =>
             webApplication
-                .MapGroup("v1/characters")
+                .MapGroup("v1/boards/{boardId:guid}/characters")
                 .MapCharacterEndpoints();
     }
 
@@ -35,10 +35,11 @@ public static class CharacterEndpoints
                     "/",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromBody] CreateCharacterDto createCharacter,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<CreateCharacterCommand, Guid>(
-                            createCharacter.ToCommand(),
+                            createCharacter.ToCommand(boardId),
                             data => Results.Created(string.Empty, data),
                             cancellationToken));
 
@@ -47,13 +48,14 @@ public static class CharacterEndpoints
                     "/{id:guid}",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid id,
                             [FromHeader(Name = HeadersConstants.IfMatch)]
                             string version,
                             [FromBody] UpdateCharacterDto updateCharacter,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<UpdateCharacterCommand>(
-                            updateCharacter.ToCommand(id, version),
+                            updateCharacter.ToCommand(boardId, id, version),
                             Results.NoContent,
                             cancellationToken));
 
@@ -62,10 +64,11 @@ public static class CharacterEndpoints
                     "/{id:guid}",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid id,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<DeleteCharacterCommand>(
-                            new DeleteCharacterCommand(id),
+                            new DeleteCharacterCommand(boardId, id),
                             Results.NoContent,
                             cancellationToken));
 
@@ -75,10 +78,11 @@ public static class CharacterEndpoints
                     async (
                             [FromServices] IHttpContextAccessor httpContextAccessor,
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid id,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<GetCharacterByIdQuery, CharacterPayload>(
-                            new GetCharacterByIdQuery(id),
+                            new GetCharacterByIdQuery(boardId, id),
                             data =>
                             {
                                 httpContextAccessor.HttpContext!.Response.Headers.ETag = new StringValues(data.Etag);
@@ -92,6 +96,7 @@ public static class CharacterEndpoints
                     "",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromQuery] uint pageNumber,
                             [FromQuery] uint pageSize,
                             [FromQuery] string sortType,
@@ -100,6 +105,7 @@ public static class CharacterEndpoints
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<GetCharacterPageQuery, IReadOnlyCollection<CharacterPayloadWithRelations>>(
                             new GetCharacterPageQuery(
+                                boardId,
                                 pageNumber,
                                 pageSize,
                                 sortType,
@@ -114,12 +120,13 @@ public static class CharacterEndpoints
                     "/knows",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromBody] CreateKnowsDto createKnowsDto,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<CreateKnowRelationCommand, Guid>(
-                            createKnowsDto.ToCommand(),
+                            createKnowsDto.ToCommand(boardId),
                             data => Results.Created(
-                                new Uri($"/knows/{data}", UriKind.Relative), data),
+                                new Uri($"/v1/boards/{boardId}/characters/knows/{data}", UriKind.Relative), data),
                             cancellationToken)
                 );
 
@@ -129,11 +136,12 @@ public static class CharacterEndpoints
                     async (
                             [FromServices] IHttpContextAccessor httpContextAccessor,
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid from,
                             [FromRoute] Guid to,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<GetKnowRelationQuery, KnowRelationPayload>(
-                            new GetKnowRelationQuery(from, to),
+                            new GetKnowRelationQuery(boardId, from, to),
                             data =>
                             {
                                 httpContextAccessor.HttpContext!.Response.Headers.ETag = new StringValues(data.Etag);
@@ -148,6 +156,7 @@ public static class CharacterEndpoints
                     "/knows/{from:guid}/to/{to:guid}",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid from,
                             [FromRoute] Guid to,
                             [FromHeader(Name = HeadersConstants.IfMatch)]
@@ -155,7 +164,7 @@ public static class CharacterEndpoints
                             [FromBody] UpdateKnowsDto updateKnowsDto,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<UpdateKnowRelationCommand>(
-                            updateKnowsDto.ToCommand(from, to, version),
+                            updateKnowsDto.ToCommand(boardId, from, to, version),
                             Results.NoContent,
                             cancellationToken)
                 );
@@ -165,11 +174,12 @@ public static class CharacterEndpoints
                     "/knows/{from:guid}/to/{to:guid}",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid from,
                             [FromRoute] Guid to,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<DeleteKnowRelationCommand>(
-                            new DeleteKnowRelationCommand(from, to),
+                            new DeleteKnowRelationCommand(boardId, from, to),
                             Results.NoContent,
                             cancellationToken)
                 );
@@ -179,12 +189,13 @@ public static class CharacterEndpoints
                     "/path/{from:guid}/to/{to:guid}",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid from,
                             [FromRoute] Guid to,
                             [FromQuery] int maxHops = 10,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<FindRelationBetweenCharacterQuery, RelationPathPayload>(
-                            new FindRelationBetweenCharacterQuery(from, to, maxHops),
+                            new FindRelationBetweenCharacterQuery(boardId, from, to, maxHops),
                             Results.Ok,
                             cancellationToken));
 
@@ -193,13 +204,14 @@ public static class CharacterEndpoints
                     "{id:guid}/facts",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid id,
                             [FromBody] CreateFactDto createFact,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<CreateFactCommand, Guid>(
-                            createFact.ToCommand(id),
+                            createFact.ToCommand(boardId, id),
                             data => Results.Created(
-                                new Uri($"/v1/characters/{id}/facts/{data}", UriKind.Relative), data),
+                                new Uri($"/v1/boards/{boardId}/characters/{id}/facts/{data}", UriKind.Relative), data),
                             cancellationToken));
 
             endpointGroup
@@ -207,11 +219,12 @@ public static class CharacterEndpoints
                     "{characterId:guid}/facts/{factId:guid}",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid characterId,
                             [FromRoute] Guid factId,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<ConnectFactToCharacterCommand>(
-                            new ConnectFactToCharacterCommand(characterId, factId),
+                            new ConnectFactToCharacterCommand(boardId, characterId, factId),
                             Results.NoContent,
                             cancellationToken));
 
@@ -220,11 +233,12 @@ public static class CharacterEndpoints
                     "{characterId:guid}/facts/{factId:guid}",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid characterId,
                             [FromRoute] Guid factId,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<DisconnectFactFromCharacterCommand>(
-                            new DisconnectFactFromCharacterCommand(characterId, factId),
+                            new DisconnectFactFromCharacterCommand(boardId, characterId, factId),
                             Results.NoContent,
                             cancellationToken));
         }

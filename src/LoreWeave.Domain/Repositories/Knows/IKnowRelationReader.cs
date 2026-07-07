@@ -7,11 +7,13 @@ public interface IKnowRelationReader
 {
     Task<KnowRelation> GetKnowRelationAsync(
         ITransaction transaction,
+        Guid boardId,
         Guid fromCharacterId,
         Guid toCharacterId);
 
     Task<IReadOnlyCollection<Guid>> FindPathBetweenCharactersAsync(
         ITransaction transaction,
+        Guid boardId,
         Guid fromCharacterId,
         Guid toCharacterId,
         int maxHops);

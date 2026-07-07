@@ -16,6 +16,8 @@ namespace LoreWeave.Application.Test.Commands.Knows.CommandHandlers;
 
 public class UpdateKnowRelationCommandHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsKnowRelation _existsKnowRelation;
     private readonly IKnowRelationWriter _knowRelationWriter;
     private readonly ITransaction _transaction;
@@ -43,9 +45,9 @@ public class UpdateKnowRelationCommandHandlerTest
     {
         // Arrange
         const string description = "Updated description";
-        var command = new UpdateKnowRelationCommand(FromCharacterId, ToCharacterId, description, false, CurrentVersion);
+        var command = new UpdateKnowRelationCommand(BoardId, FromCharacterId, ToCharacterId, description, false, CurrentVersion);
         _existsKnowRelation
-            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
+            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, CurrentVersion));
 
         // Act
@@ -67,9 +69,9 @@ public class UpdateKnowRelationCommandHandlerTest
     public async Task InvokeAsync_WhenRelationDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new UpdateKnowRelationCommand(FromCharacterId, ToCharacterId, "Updated description", true, CurrentVersion);
+        var command = new UpdateKnowRelationCommand(BoardId, FromCharacterId, ToCharacterId, "Updated description", true, CurrentVersion);
         _existsKnowRelation
-            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
+            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -88,9 +90,9 @@ public class UpdateKnowRelationCommandHandlerTest
     public async Task InvokeAsync_WhenVersionDoesNotMatch_ReturnsPreconditionException()
     {
         // Arrange
-        var command = new UpdateKnowRelationCommand(FromCharacterId, ToCharacterId, "Updated description", true, CurrentVersion);
+        var command = new UpdateKnowRelationCommand(BoardId, FromCharacterId, ToCharacterId, "Updated description", true, CurrentVersion);
         _existsKnowRelation
-            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
+            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, CurrentVersion + 1));
 
         // Act
@@ -107,7 +109,7 @@ public class UpdateKnowRelationCommandHandlerTest
     public async Task InvokeAsync_WhenFromAndToAreSame_ReturnsArgumentException()
     {
         // Arrange
-        var command = new UpdateKnowRelationCommand(FromCharacterId, FromCharacterId, "Updated description", true, CurrentVersion);
+        var command = new UpdateKnowRelationCommand(BoardId, FromCharacterId, FromCharacterId, "Updated description", true, CurrentVersion);
 
         // Act
         var result = await _sut.InvokeAsync(command);
@@ -123,10 +125,10 @@ public class UpdateKnowRelationCommandHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
     {
         // Arrange
-        var command = new UpdateKnowRelationCommand(FromCharacterId, ToCharacterId, "Updated description", true, CurrentVersion);
+        var command = new UpdateKnowRelationCommand(BoardId, FromCharacterId, ToCharacterId, "Updated description", true, CurrentVersion);
         var expectedException = new Exception("DB error");
         _existsKnowRelation
-            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
+            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, CurrentVersion));
         _knowRelationWriter
             .UpdateKnowRelationAsync(Arg.Any<ITransaction>(), Arg.Any<LoreWeave.Domain.Entities.Knows.Commands.UpdateKnowRelation>())

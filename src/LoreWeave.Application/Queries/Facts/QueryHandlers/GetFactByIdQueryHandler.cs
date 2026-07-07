@@ -37,7 +37,7 @@ public class GetFactByIdQueryHandler : IAsyncRequestHandler<GetFactByIdQuery, Re
 
         try
         {
-            var exists = await _existsFact.FactExistsAsync(transaction, request.Id);
+            var exists = await _existsFact.FactExistsAsync(transaction, request.BoardId, request.Id);
 
             if (!exists.Exists)
             {
@@ -45,7 +45,7 @@ public class GetFactByIdQueryHandler : IAsyncRequestHandler<GetFactByIdQuery, Re
                 return new NotFoundException(Entities.Fact);
             }
 
-            var fact = await _factReader.GetFactAsync(transaction, request.Id);
+            var fact = await _factReader.GetFactAsync(transaction, request.BoardId, request.Id);
             _logger.Information("Fact found: {Id}", request.Id);
 
             return new FactPayload(fact.Id, fact.Title, fact.Content, fact.Version);

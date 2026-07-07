@@ -40,7 +40,7 @@ public class
         {
             var id = request.Id;
 
-            var exists = await _existsCharacter.CharacterExistsAsync(transaction, id);
+            var exists = await _existsCharacter.CharacterExistsAsync(transaction, request.BoardId, id);
 
             if (!exists.Exists)
             {
@@ -48,7 +48,7 @@ public class
                 return new NotFoundException(Entities.Character);
             }
 
-            var character = await _characterReader.GetAsync(transaction, id);
+            var character = await _characterReader.GetAsync(transaction, request.BoardId, id);
             _logger.Information("Character found: {Id}", request.Id);
 
             return new CharacterPayload(character.Id, character.Name, character.Version);

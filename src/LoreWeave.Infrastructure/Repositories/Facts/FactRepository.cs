@@ -17,7 +17,7 @@ public class FactRepository : IExistsFact, IFactReader, IFactWriter, IFactConnec
     {
         const string queryString = @"
             MATCH (ch:Character {Id: $CharacterId})
-            CREATE (f:Fact {Id: $Id, Title: $Title, Content: $Content, Version: 1})
+            CREATE (f:Fact {Id: $Id, BoardId: ch.BoardId, Title: $Title, Content: $Content, Version: 1})
             CREATE (ch)-[:HAS_FACT]->(f)";
         var query = new Query(queryString, new
         {
@@ -30,14 +30,15 @@ public class FactRepository : IExistsFact, IFactReader, IFactWriter, IFactConnec
         await transaction.AsNeo4jTransaction().RunAsync(query);
     }
 
-    public async Task<EntityExistence> FactExistsAsync(ITransaction transaction, Guid id)
+    public async Task<EntityExistence> FactExistsAsync(ITransaction transaction, Guid boardId, Guid id)
     {
         const string queryString = @"
-            MATCH (f:Fact {Id: $Id })
+            MATCH (f:Fact {Id: $Id, BoardId: $BoardId })
             RETURN f IS NOT NULL AS Exists, coalesce(f.Version, 0) AS Version";
         var query = new Query(queryString, new
         {
-            Id = id.ToDatabaseId()
+            Id = id.ToDatabaseId(),
+            BoardId = boardId.ToDatabaseId()
         });
 
         var cursorResult = await transaction.AsNeo4jTransaction().RunAsync(query);
@@ -54,14 +55,15 @@ public class FactRepository : IExistsFact, IFactReader, IFactWriter, IFactConnec
         return new EntityExistence(record["Exists"].As<bool>(), (ushort)record["Version"].As<int>());
     }
 
-    public async Task<Fact> GetFactAsync(ITransaction transaction, Guid id)
+    public async Task<Fact> GetFactAsync(ITransaction transaction, Guid boardId, Guid id)
     {
         const string queryString = @"
-            MATCH (f:Fact {Id: $Id})
+            MATCH (f:Fact {Id: $Id, BoardId: $BoardId})
             RETURN f.Id AS Id, f.Title AS Title, f.Content AS Content, f.Version AS Version";
         var query = new Query(queryString, new
         {
-            Id = id.ToDatabaseId()
+            Id = id.ToDatabaseId(),
+            BoardId = boardId.ToDatabaseId()
         });
 
         var cursorResult = await transaction.AsNeo4jTransaction().RunAsync(query);

@@ -38,7 +38,7 @@ public class UpdateFactCommandHandler : IAsyncRequestHandler<UpdateFactCommand, 
 
         try
         {
-            var exists = await _existsFact.FactExistsAsync(transaction, request.Id);
+            var exists = await _existsFact.FactExistsAsync(transaction, request.BoardId, request.Id);
 
             if (!exists.Exists)
             {

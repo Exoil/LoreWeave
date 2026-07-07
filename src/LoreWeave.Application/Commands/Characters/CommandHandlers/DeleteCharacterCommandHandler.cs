@@ -39,7 +39,7 @@ public class DeleteCharacterCommandHandler : IAsyncRequestHandler<DeleteCharacte
         try
         {
             var userId = request.Id;
-            var exists = await _existsCharacter.CharacterExistsAsync(transaction, userId);
+            var exists = await _existsCharacter.CharacterExistsAsync(transaction, request.BoardId, userId);
 
             if (!exists.Exists)
             {

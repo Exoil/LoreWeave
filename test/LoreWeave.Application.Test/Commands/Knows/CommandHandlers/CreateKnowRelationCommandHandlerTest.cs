@@ -17,6 +17,8 @@ namespace LoreWeave.Application.Test.Commands.Knows.CommandHandlers;
 
 public class CreateKnowRelationCommandHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsCharacter _existsCharacter;
     private readonly IKnowRelationWriter _knowRelationWriter;
     private readonly ITransaction _transaction;
@@ -43,12 +45,12 @@ public class CreateKnowRelationCommandHandlerTest
     {
         // Arrange
         const string description = "They know each other";
-        var command = new CreateKnowRelationCommand(_fromCharacterId, _toCharacterId, description, true);
+        var command = new CreateKnowRelationCommand(BoardId, _fromCharacterId, _toCharacterId, description, true);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterId)
             .Returns(new EntityExistence(true, 1));
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _toCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _toCharacterId)
             .Returns(new EntityExistence(true, 1));
 
         // Act
@@ -75,12 +77,12 @@ public class CreateKnowRelationCommandHandlerTest
     {
         // Arrange
         const string description = "A long-standing friendship";
-        var command = new CreateKnowRelationCommand(_fromCharacterId, _toCharacterId, description, true);
+        var command = new CreateKnowRelationCommand(BoardId, _fromCharacterId, _toCharacterId, description, true);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterId)
             .Returns(new EntityExistence(true, 1));
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _toCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _toCharacterId)
             .Returns(new EntityExistence(true, 1));
 
         // Act
@@ -100,12 +102,12 @@ public class CreateKnowRelationCommandHandlerTest
     public async Task InvokeAsync_WhenRelationIsNotStrong_PassesIsStrongRelationFalseToRepository()
     {
         // Arrange
-        var command = new CreateKnowRelationCommand(_fromCharacterId, _toCharacterId, "They know each other", false);
+        var command = new CreateKnowRelationCommand(BoardId, _fromCharacterId, _toCharacterId, "They know each other", false);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterId)
             .Returns(new EntityExistence(true, 1));
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _toCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _toCharacterId)
             .Returns(new EntityExistence(true, 1));
 
         // Act
@@ -125,9 +127,9 @@ public class CreateKnowRelationCommandHandlerTest
     public async Task InvokeAsync_WhenFromCharacterDoesNotExist_ReturnsUnprocessableContentException()
     {
         // Arrange
-        var command = new CreateKnowRelationCommand(_fromCharacterId, _toCharacterId, "They know each other", true);
+        var command = new CreateKnowRelationCommand(BoardId, _fromCharacterId, _toCharacterId, "They know each other", true);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterId)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -143,12 +145,12 @@ public class CreateKnowRelationCommandHandlerTest
     public async Task InvokeAsync_WhenToCharacterDoesNotExist_ReturnsUnprocessableContentException()
     {
         // Arrange
-        var command = new CreateKnowRelationCommand(_fromCharacterId, _toCharacterId, "They know each other", true);
+        var command = new CreateKnowRelationCommand(BoardId, _fromCharacterId, _toCharacterId, "They know each other", true);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterId)
             .Returns(new EntityExistence(true, 1));
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _toCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _toCharacterId)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -164,13 +166,13 @@ public class CreateKnowRelationCommandHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
     {
         // Arrange
-        var command = new CreateKnowRelationCommand(_fromCharacterId, _toCharacterId, "They know each other", true);
+        var command = new CreateKnowRelationCommand(BoardId, _fromCharacterId, _toCharacterId, "They know each other", true);
         var expectedException = new Exception("DB error");
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterId)
             .Returns(new EntityExistence(true, 1));
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _toCharacterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _toCharacterId)
             .Returns(new EntityExistence(true, 1));
         _knowRelationWriter
             .CreateKnowRelationAsync(Arg.Any<ITransaction>(), Arg.Any<LoreWeave.Domain.Entities.Knows.Commands.CreateKnowRelation>())

@@ -14,7 +14,7 @@ namespace LoreWeave.Api.Integration.Test.Endpoints.Characters;
 
 public class DeleteCharacterEndpointTest : IntegrationTestBase
 {
-    public const string Endpoint = "/v1/characters";
+    private string Endpoint => $"/v1/boards/{BoardId}/characters";
 
     [Fact]
     public async Task DeleteCharacter_GetNoContent()
@@ -56,7 +56,7 @@ public class DeleteCharacterEndpointTest : IntegrationTestBase
         await using var transaction = await session.BeginTransactionAsync();
 
         var characterRepository = new CharacterRepository();
-        var exists = await characterRepository.CharacterExistsAsync(new Neo4jTransaction(transaction), id);
+        var exists = await characterRepository.CharacterExistsAsync(new Neo4jTransaction(transaction), BoardId, id);
 
         exists.Exists.ShouldBeFalse();
     }

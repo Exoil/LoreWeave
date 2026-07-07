@@ -42,7 +42,7 @@ public class DisconnectFactFromCharacterCommandHandler
 
         try
         {
-            var characterExists = await _existsCharacter.CharacterExistsAsync(transaction, request.CharacterId);
+            var characterExists = await _existsCharacter.CharacterExistsAsync(transaction, request.BoardId, request.CharacterId);
 
             if (!characterExists.Exists)
             {
@@ -52,7 +52,7 @@ public class DisconnectFactFromCharacterCommandHandler
                 return new NotFoundException(Entities.Character);
             }
 
-            var factExists = await _existsFact.FactExistsAsync(transaction, request.FactId);
+            var factExists = await _existsFact.FactExistsAsync(transaction, request.BoardId, request.FactId);
 
             if (!factExists.Exists)
             {

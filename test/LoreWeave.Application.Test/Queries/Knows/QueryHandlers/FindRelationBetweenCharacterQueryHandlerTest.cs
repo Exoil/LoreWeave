@@ -24,6 +24,8 @@ namespace LoreWeave.Application.Test.Queries.Knows.QueryHandlers;
 
 public class FindRelationBetweenCharacterQueryHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsCharacter _existsCharacter;
     private readonly IKnowRelationReader _knowRelationReader;
     private readonly FindRelationBetweenCharacterQueryHandler _sut;
@@ -49,17 +51,18 @@ public class FindRelationBetweenCharacterQueryHandlerTest
     {
         // Arrange
         var middleGuid = Guid.CreateVersion7();
-        var query = new FindRelationBetweenCharacterQuery(_fromCharacterGuid, _toCharacterGuid, 10);
+        var query = new FindRelationBetweenCharacterQuery(BoardId, _fromCharacterGuid, _toCharacterGuid, 10);
 
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterGuid)
             .Returns(new EntityExistence(true, 1));
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _toCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _toCharacterGuid)
             .Returns(new EntityExistence(true, 1));
         _knowRelationReader
             .FindPathBetweenCharactersAsync(
-                Arg.Any<ITransaction>(), _fromCharacterGuid, _toCharacterGuid, 10)
+                Arg.Any<ITransaction>(),
+                BoardId, _fromCharacterGuid, _toCharacterGuid, 10)
             .Returns(new List<Guid> { _fromCharacterGuid, middleGuid, _toCharacterGuid }.AsReadOnly());
 
         // Act
@@ -79,17 +82,18 @@ public class FindRelationBetweenCharacterQueryHandlerTest
     public async Task InvokeAsync_WhenNoPathExists_ReturnsEmptyPayload()
     {
         // Arrange
-        var query = new FindRelationBetweenCharacterQuery(_fromCharacterGuid, _toCharacterGuid, 10);
+        var query = new FindRelationBetweenCharacterQuery(BoardId, _fromCharacterGuid, _toCharacterGuid, 10);
 
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterGuid)
             .Returns(new EntityExistence(true, 1));
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _toCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _toCharacterGuid)
             .Returns(new EntityExistence(true, 1));
         _knowRelationReader
             .FindPathBetweenCharactersAsync(
-                Arg.Any<ITransaction>(), _fromCharacterGuid, _toCharacterGuid, 10)
+                Arg.Any<ITransaction>(),
+                BoardId, _fromCharacterGuid, _toCharacterGuid, 10)
             .Returns(Array.Empty<Guid>().AsReadOnly());
 
         // Act
@@ -106,10 +110,10 @@ public class FindRelationBetweenCharacterQueryHandlerTest
     public async Task InvokeAsync_WhenFromCharacterDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var query = new FindRelationBetweenCharacterQuery(_fromCharacterGuid, _toCharacterGuid, 10);
+        var query = new FindRelationBetweenCharacterQuery(BoardId, _fromCharacterGuid, _toCharacterGuid, 10);
 
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterGuid)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -125,13 +129,13 @@ public class FindRelationBetweenCharacterQueryHandlerTest
     public async Task InvokeAsync_WhenToCharacterDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var query = new FindRelationBetweenCharacterQuery(_fromCharacterGuid, _toCharacterGuid, 10);
+        var query = new FindRelationBetweenCharacterQuery(BoardId, _fromCharacterGuid, _toCharacterGuid, 10);
 
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterGuid)
             .Returns(new EntityExistence(true, 1));
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _toCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _toCharacterGuid)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -147,18 +151,19 @@ public class FindRelationBetweenCharacterQueryHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsException()
     {
         // Arrange
-        var query = new FindRelationBetweenCharacterQuery(_fromCharacterGuid, _toCharacterGuid, 10);
+        var query = new FindRelationBetweenCharacterQuery(BoardId, _fromCharacterGuid, _toCharacterGuid, 10);
         var expectedException = new Exception("DB error");
 
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterGuid)
             .Returns(new EntityExistence(true, 1));
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _toCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _toCharacterGuid)
             .Returns(new EntityExistence(true, 1));
         _knowRelationReader
             .FindPathBetweenCharactersAsync(
-                Arg.Any<ITransaction>(), _fromCharacterGuid, _toCharacterGuid, 10)
+                Arg.Any<ITransaction>(),
+                BoardId, _fromCharacterGuid, _toCharacterGuid, 10)
             .ThrowsAsync(expectedException);
 
         // Act
@@ -175,17 +180,18 @@ public class FindRelationBetweenCharacterQueryHandlerTest
     {
         // Arrange
         const int maxHops = 5;
-        var query = new FindRelationBetweenCharacterQuery(_fromCharacterGuid, _toCharacterGuid, maxHops);
+        var query = new FindRelationBetweenCharacterQuery(BoardId, _fromCharacterGuid, _toCharacterGuid, maxHops);
 
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _fromCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromCharacterGuid)
             .Returns(new EntityExistence(true, 1));
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _toCharacterGuid)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _toCharacterGuid)
             .Returns(new EntityExistence(true, 1));
         _knowRelationReader
             .FindPathBetweenCharactersAsync(
-                Arg.Any<ITransaction>(), _fromCharacterGuid, _toCharacterGuid, maxHops)
+                Arg.Any<ITransaction>(),
+                BoardId, _fromCharacterGuid, _toCharacterGuid, maxHops)
             .Returns(new List<Guid> { _fromCharacterGuid, _toCharacterGuid }.AsReadOnly());
 
         // Act
@@ -196,6 +202,7 @@ public class FindRelationBetweenCharacterQueryHandlerTest
             .Received(1)
             .FindPathBetweenCharactersAsync(
                 Arg.Any<ITransaction>(),
+                BoardId,
                 _fromCharacterGuid,
                 _toCharacterGuid,
                 maxHops);

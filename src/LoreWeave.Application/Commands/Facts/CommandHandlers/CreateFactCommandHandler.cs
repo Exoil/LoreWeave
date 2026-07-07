@@ -43,7 +43,7 @@ public sealed class CreateFactCommandHandler : IAsyncRequestHandler<CreateFactCo
             var createFact = new CreateFact(id, request.Title, request.Content);
 
             var existCharacter = await _existsCharacter
-                .CharacterExistsAsync(transaction, request.CharacterId);
+                .CharacterExistsAsync(transaction, request.BoardId, request.CharacterId);
 
             if (!existCharacter.Exists)
             {

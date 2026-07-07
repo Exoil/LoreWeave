@@ -16,6 +16,8 @@ namespace LoreWeave.Application.Test.Commands.Characters.CommandHandlers;
 
 public class DeleteCharacterCommandHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsCharacter _existsCharacter;
     private readonly ICharacterWriter _characterWriter;
     private readonly ITransaction _transaction;
@@ -40,9 +42,9 @@ public class DeleteCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenCharacterExists_ReturnsSuccess()
     {
         // Arrange
-        var command = new DeleteCharacterCommand(_characterId);
+        var command = new DeleteCharacterCommand(BoardId, _characterId);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, 1));
 
         // Act
@@ -58,9 +60,9 @@ public class DeleteCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenCharacterDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new DeleteCharacterCommand(_characterId);
+        var command = new DeleteCharacterCommand(BoardId, _characterId);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -76,10 +78,10 @@ public class DeleteCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
     {
         // Arrange
-        var command = new DeleteCharacterCommand(_characterId);
+        var command = new DeleteCharacterCommand(BoardId, _characterId);
         var expectedException = new Exception("DB error");
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, 1));
         _characterWriter
             .DeleteAsync(Arg.Any<ITransaction>(), Arg.Any<LoreWeave.Domain.Entities.Characters.Commands.DeleteCharacter>())
