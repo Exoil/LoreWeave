@@ -1,14 +1,188 @@
 openapi: 3.0.3
 info:
   title: LoreWeave Character API
-  version: 1.0.1
+  version: 2.0.0
 servers:
   - url: https://localhost:7048
+tags:
+  - name: Boards
+    description: Boards — one graph per RPG game; carries the name and visual configuration.
+  - name: Characters
+    description: Characters living on a board.
+  - name: Relations
+    description: KNOWS relationships between characters and path finding through them.
+  - name: Facts
+    description: Facts and their HAS_FACT connections to characters.
 paths:
-  /v1/characters:
+  /v1/boards:
+    get:
+      summary: Get all boards
+      operationId: getBoards
+      tags: [ Boards ]
+      responses:
+        '200':
+          description: List of boards
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 0
+                maxItems: 100
+                items:
+                  $ref: '#/components/schemas/BoardDto'
+              examples:
+                boards:
+                  summary: Two boards with different styling
+                  value:
+                    - id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+                      name: "Curse of Strahd"
+                      configuration:
+                        characterNodeColor: "#4466cc"
+                        factNodeColor: "#d97706"
+                        relationEdgeColor: "#aaaaaa"
+                        factEdgeColor: "#d9a066"
+                        pathHighlightColor: "#a855f7"
+                        nodeRadius: 16
+                        edgeWidth: 3
+                        curvedEdges: true
+                        showGrid: true
+                        scalingObjects: true
+                    - id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+                      name: "Waterdeep"
+                      configuration:
+                        characterNodeColor: "#166534"
+                        factNodeColor: "#9f1239"
+                        relationEdgeColor: "#64748b"
+                        factEdgeColor: "#f59e0b"
+                        pathHighlightColor: "#7c3aed"
+                        nodeRadius: 20
+                        edgeWidth: 4
+                        curvedEdges: false
+                        showGrid: false
+                        scalingObjects: false
+    post:
+      summary: Create a board
+      description: >-
+        Creates a new board (one graph per RPG game). The board starts with
+        the server-side default configuration; use updateBoard to customise it.
+      operationId: createBoard
+      tags: [ Boards ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBoardDto'
+            examples:
+              standard:
+                summary: Minimal valid create
+                value:
+                  name: "Curse of Strahd"
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: string
+                format: uuid
+              example: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /v1/boards/{boardId}:
+    parameters:
+      - $ref: '#/components/parameters/BoardId'
+    get:
+      summary: Get board by id
+      operationId: getBoardById
+      tags: [ Boards ]
+      responses:
+        '200':
+          description: Board found
+          headers:
+            ETag:
+              $ref: '#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BoardDto'
+              examples:
+                standard:
+                  summary: A board with custom styling
+                  value:
+                    id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+                    name: "Curse of Strahd"
+                    configuration:
+                      characterNodeColor: "#4466cc"
+                      factNodeColor: "#d97706"
+                      relationEdgeColor: "#aaaaaa"
+                      factEdgeColor: "#d9a066"
+                      pathHighlightColor: "#a855f7"
+                      nodeRadius: 16
+                      edgeWidth: 3
+                      curvedEdges: true
+                      showGrid: true
+                      scalingObjects: true
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update board name and configuration
+      operationId: updateBoard
+      tags: [ Boards ]
+      parameters:
+        - $ref: '#/components/parameters/IfMatch'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateBoardDto'
+            examples:
+              standard:
+                summary: Rename and restyle the board
+                value:
+                  name: "Curse of Strahd — Act II"
+                  configuration:
+                    characterNodeColor: "#166534"
+                    factNodeColor: "#9f1239"
+                    relationEdgeColor: "#64748b"
+                    factEdgeColor: "#f59e0b"
+                    pathHighlightColor: "#7c3aed"
+                    nodeRadius: 20
+                    edgeWidth: 4
+                    curvedEdges: false
+                    showGrid: false
+                    scalingObjects: true
+      responses:
+        '204':
+          description: No Content
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '412':
+          $ref: '#/components/responses/PreconditionFailed'
+    delete:
+      summary: Delete a board and everything on it
+      description: >-
+        Deletes the board together with all characters, relations and facts
+        that belong to it.
+      operationId: deleteBoard
+      tags: [ Boards ]
+      responses:
+        '204':
+          description: No Content
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/boards/{boardId}/characters:
+    parameters:
+      - $ref: '#/components/parameters/BoardId'
     get:
       summary: Get paged characters
       operationId: getPagedCharacters
+      tags: [ Characters ]
       parameters:
         - $ref: '#/components/parameters/PageNumber'
         - $ref: '#/components/parameters/PageSize'
@@ -46,9 +220,12 @@ paths:
                       facts: [ ]
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
     post:
       summary: Create a character
       operationId: createCharacter
+      tags: [ Characters ]
       requestBody:
         required: true
         content:
@@ -65,10 +242,15 @@ paths:
                 format: uuid
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   
-  /v1/characters/{id}:
+  /v1/boards/{boardId}/characters/{id}:
+    parameters:
+      - $ref: '#/components/parameters/BoardId'
     get:
       operationId: getCharacterById
+      tags: [ Characters ]
       summary: Get character by id
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -86,6 +268,7 @@ paths:
           $ref: '#/components/responses/NotFound'
     put:
       operationId: updateCharacter
+      tags: [ Characters ]
       summary: Update character
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -107,6 +290,7 @@ paths:
           $ref: '#/components/responses/PreconditionFailed'
     delete:
       operationId: deleteCharacter
+      tags: [ Characters ]
       summary: Delete character
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -116,9 +300,12 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
   
-  /v1/characters/knows:
+  /v1/boards/{boardId}/characters/knows:
+    parameters:
+      - $ref: '#/components/parameters/BoardId'
     post:
       operationId: createKnowRelationship
+      tags: [ Relations ]
       summary: Create a knowledge relationship between characters
       requestBody:
         required: true
@@ -136,10 +323,15 @@ paths:
                 format: uuid
         '400':
           $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/UnprocessableEntity'
   
-  /v1/characters/path/{from}/to/{to}:
+  /v1/boards/{boardId}/characters/path/{from}/to/{to}:
+    parameters:
+      - $ref: '#/components/parameters/BoardId'
     get:
       operationId: findRelationBetweenCharacters
+      tags: [ Relations ]
       summary: Find shortest path between two characters through KNOWS relationships
       parameters:
         - name: from
@@ -176,9 +368,12 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
   
-  /v1/characters/knows/{from}/to/{to}:
+  /v1/boards/{boardId}/characters/knows/{from}/to/{to}:
+    parameters:
+      - $ref: '#/components/parameters/BoardId'
     get:
       operationId: getKnowRelationship
+      tags: [ Relations ]
       summary: Get the knowledge relationship between two characters
       parameters:
         - name: from
@@ -209,6 +404,7 @@ paths:
           $ref: '#/components/responses/NotFound'
     put:
       operationId: updateKnowRelationship
+      tags: [ Relations ]
       summary: Update a knowledge relationship between characters
       parameters:
         - name: from
@@ -243,6 +439,7 @@ paths:
           $ref: '#/components/responses/PreconditionFailed'
     delete:
       operationId: deleteKnowRelationship
+      tags: [ Relations ]
       summary: Delete a knowledge relationship
       parameters:
         - name: from
@@ -263,9 +460,12 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
   
-  /v1/characters/{id}/facts:
+  /v1/boards/{boardId}/characters/{id}/facts:
+    parameters:
+      - $ref: '#/components/parameters/BoardId'
     put:
       operationId: addFactToCharacter
+      tags: [ Facts ]
       summary: Add a fact to a character.
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -288,9 +488,12 @@ paths:
           '404':
               $ref: '#/components/responses/NotFound'
               
-  /v1/facts/{id}:
+  /v1/boards/{boardId}/facts/{id}:
+    parameters:
+      - $ref: '#/components/parameters/BoardId'
     get:
       operationId: getFact
+      tags: [ Facts ]
       summary: Get a fact by id.
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -315,6 +518,7 @@ paths:
           $ref: '#/components/responses/NotFound'
     put:
       operationId: updateFact
+      tags: [ Facts ]
       summary: Update a fact.
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -342,6 +546,7 @@ paths:
           $ref: '#/components/responses/PreconditionFailed'
     delete:
       operationId: deleteFact
+      tags: [ Facts ]
       summary: Delete a fact by id.
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -351,9 +556,12 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /v1/characters/{characterId}/facts/{factId}:
+  /v1/boards/{boardId}/characters/{characterId}/facts/{factId}:
+    parameters:
+      - $ref: '#/components/parameters/BoardId'
     put:
       operationId: connectFactToCharacter
+      tags: [ Facts ]
       summary: Connect an existing fact to an existing character.
       description: >-
         Creates a HAS_FACT connection between the character and the fact.
@@ -371,6 +579,7 @@ paths:
           $ref: '#/components/responses/Conflict'
     delete:
       operationId: disconnectFactFromCharacter
+      tags: [ Facts ]
       summary: Delete the connection between a character and a fact.
       description: >-
         Removes the HAS_FACT connection between the character and the fact.
@@ -396,6 +605,14 @@ components:
         minLength: 3
         maxLength: 7
   parameters:
+    BoardId:
+      name: boardId
+      in: path
+      required: true
+      description: Board identifier (one board per RPG game)
+      schema:
+        type: string
+        format: uuid
     Id:
       name: id
       in: path
@@ -505,6 +722,12 @@ components:
         application/problem+json:
           schema:
             $ref: '#/components/schemas/ProblemDetails'
+    UnprocessableEntity:
+      description: The request was well-formed but cannot be processed (e.g. a referenced character does not exist on the board)
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
   schemas:
     ProblemDetails:
       type: object
@@ -537,6 +760,115 @@ components:
           maxLength: 500
           nullable: true
       additionalProperties: true
+    BoardConfigurationDto:
+      title: BoardConfigurationDto
+      description: >-
+        Per-board visual configuration of the graph. Colours are 6-digit hex
+        values; the remaining fields map onto v-network-graph view options.
+      type: object
+      required:
+        [
+          characterNodeColor,
+          factNodeColor,
+          relationEdgeColor,
+          factEdgeColor,
+          pathHighlightColor,
+          nodeRadius,
+          edgeWidth,
+          curvedEdges,
+          showGrid,
+          scalingObjects,
+        ]
+      properties:
+        characterNodeColor:
+          type: string
+          description: Fill colour of character nodes (hex, e.g. "#4466cc")
+          pattern: "^#[0-9a-fA-F]{6}$"
+          minLength: 7
+          maxLength: 7
+        factNodeColor:
+          type: string
+          description: Fill colour of fact nodes (hex)
+          pattern: "^#[0-9a-fA-F]{6}$"
+          minLength: 7
+          maxLength: 7
+        relationEdgeColor:
+          type: string
+          description: Colour of character-to-character relation edges (hex)
+          pattern: "^#[0-9a-fA-F]{6}$"
+          minLength: 7
+          maxLength: 7
+        factEdgeColor:
+          type: string
+          description: Colour of character-to-fact connection edges (hex)
+          pattern: "^#[0-9a-fA-F]{6}$"
+          minLength: 7
+          maxLength: 7
+        pathHighlightColor:
+          type: string
+          description: Colour of nodes/edges on a found relation path (hex)
+          pattern: "^#[0-9a-fA-F]{6}$"
+          minLength: 7
+          maxLength: 7
+        nodeRadius:
+          type: integer
+          format: int32
+          description: Radius of character nodes in pixels (fact nodes scale down proportionally)
+          minimum: 8
+          maximum: 48
+        edgeWidth:
+          type: integer
+          format: int32
+          description: Stroke width of relation edges in pixels
+          minimum: 1
+          maximum: 12
+        curvedEdges:
+          type: boolean
+          description: Render edges as curves (true) or straight lines (false)
+        showGrid:
+          type: boolean
+          description: Whether the background grid is visible
+        scalingObjects:
+          type: boolean
+          description: Whether zooming scales nodes/edges/labels together like a map
+    BoardDto:
+      title: BoardDto
+      type: object
+      required: [ id, name, configuration ]
+      properties:
+        id:
+          type: string
+          description: Board identifier
+          format: uuid
+        name:
+          type: string
+          description: Board name (typically the RPG game/world name)
+          minLength: 1
+          maxLength: 50
+        configuration:
+          $ref: '#/components/schemas/BoardConfigurationDto'
+    CreateBoardDto:
+      title: CreateBoardDto
+      type: object
+      required: [ name ]
+      properties:
+        name:
+          type: string
+          description: Board name (typically the RPG game/world name)
+          minLength: 1
+          maxLength: 50
+    UpdateBoardDto:
+      title: UpdateBoardDto
+      type: object
+      required: [ name, configuration ]
+      properties:
+        name:
+          type: string
+          description: Board name (typically the RPG game/world name)
+          minLength: 1
+          maxLength: 50
+        configuration:
+          $ref: '#/components/schemas/BoardConfigurationDto'
     CharacterDto:
       title: CharacterDto
       type: object

@@ -6,9 +6,11 @@ using LoreWeave.Application.Queries.Characters;
 using LoreWeave.Application.Queries.Characters.QueryHandlers;
 using LoreWeave.Domain.Entities.Characters.Queries;
 using LoreWeave.Domain.Extensions;
-using LoreWeave.Domain.Transactions;
+using LoreWeave.Domain.Exceptions;
 using LoreWeave.Domain.Models;
+using LoreWeave.Domain.Repositories.Boards;
 using LoreWeave.Domain.Repositories.Characters;
+using LoreWeave.Domain.Transactions;
 
 using Serilog;
 
@@ -18,21 +20,28 @@ namespace LoreWeave.Application.Test.Queries.Characters.QueryHandlers;
 
 public class GetCharacterPageQueryHandlerTest
 {
+    private readonly IExistsBoard _existsBoard;
     private readonly ICharacterReader _characterReader;
     private readonly ILogger _logger;
     private readonly ITransaction _transaction;
     private readonly ITransactionFactory _transactionFactory;
     private readonly GetCharacterPageQueryHandler _sut;
 
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     public GetCharacterPageQueryHandlerTest()
     {
+        _existsBoard = Substitute.For<IExistsBoard>();
+        _existsBoard
+            .BoardExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .Returns(new EntityExistence(true, 1));
         _characterReader = Substitute.For<ICharacterReader>();
         _logger = Substitute.For<ILogger>();
         _transaction = Substitute.For<ITransaction>();
         _transactionFactory = Substitute.For<ITransactionFactory>();
         _transactionFactory.CreateAsync().Returns(_transaction);
 
-        _sut = new GetCharacterPageQueryHandler(_transactionFactory, _characterReader, _logger);
+        _sut = new GetCharacterPageQueryHandler(_transactionFactory, _existsBoard, _characterReader, _logger);
     }
 
     [Fact]
@@ -40,7 +49,7 @@ public class GetCharacterPageQueryHandlerTest
     public async Task InvokeAsync_WhenCharactersExist_ReturnsPageWithRelations()
     {
         // Arrange
-        var query = new GetCharacterPageQuery(1, 10, "Name", "Asc", null);
+        var query = new GetCharacterPageQuery(BoardId, 1, 10, "Name", "Asc", null);
         var knownCharacterId = Guid.CreateVersion7();
         var factId = Guid.CreateVersion7();
         var characters = new List<CharacterWithKnowRelation>
@@ -60,7 +69,7 @@ public class GetCharacterPageQueryHandlerTest
         }.AsReadOnly();
 
         _characterReader
-            .GetPageAsync(Arg.Any<ITransaction>(), Arg.Any<GetCharacterPage>(), Arg.Any<CharacterSearchFilter>())
+            .GetPageAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<GetCharacterPage>(), Arg.Any<CharacterSearchFilter>())
             .Returns(characters);
 
         // Act
@@ -93,7 +102,7 @@ public class GetCharacterPageQueryHandlerTest
     public async Task InvokeAsync_WhenCharacterHasMultipleFacts_ReturnsAllFacts()
     {
         // Arrange
-        var query = new GetCharacterPageQuery(1, 10, "Name", "Asc", null);
+        var query = new GetCharacterPageQuery(BoardId, 1, 10, "Name", "Asc", null);
         var facts = new List<FactDetail>
         {
             new(Guid.CreateVersion7(), "FactA", "ContentA"),
@@ -107,7 +116,7 @@ public class GetCharacterPageQueryHandlerTest
         }.AsReadOnly();
 
         _characterReader
-            .GetPageAsync(Arg.Any<ITransaction>(), Arg.Any<GetCharacterPage>(), Arg.Any<CharacterSearchFilter>())
+            .GetPageAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<GetCharacterPage>(), Arg.Any<CharacterSearchFilter>())
             .Returns(characters);
 
         // Act
@@ -128,9 +137,9 @@ public class GetCharacterPageQueryHandlerTest
     public async Task InvokeAsync_WhenNoCharactersExist_ReturnsEmptyCollection()
     {
         // Arrange
-        var query = new GetCharacterPageQuery(1, 10, "Name", "Asc", null);
+        var query = new GetCharacterPageQuery(BoardId, 1, 10, "Name", "Asc", null);
         _characterReader
-            .GetPageAsync(Arg.Any<ITransaction>(), Arg.Any<GetCharacterPage>(), Arg.Any<CharacterSearchFilter>())
+            .GetPageAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<GetCharacterPage>(), Arg.Any<CharacterSearchFilter>())
             .Returns(new List<CharacterWithKnowRelation>().AsReadOnly());
 
         // Act
@@ -146,10 +155,10 @@ public class GetCharacterPageQueryHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsException()
     {
         // Arrange
-        var query = new GetCharacterPageQuery(1, 10, "Name", "Asc", null);
+        var query = new GetCharacterPageQuery(BoardId, 1, 10, "Name", "Asc", null);
         var expectedException = new Exception("DB error");
         _characterReader
-            .GetPageAsync(Arg.Any<ITransaction>(), Arg.Any<GetCharacterPage>(), Arg.Any<CharacterSearchFilter>())
+            .GetPageAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<GetCharacterPage>(), Arg.Any<CharacterSearchFilter>())
             .ThrowsAsync(expectedException);
 
         // Act
@@ -158,5 +167,23 @@ public class GetCharacterPageQueryHandlerTest
         // Assert
         result.IsSuccess.ShouldBeFalse("Result should be failure when repository throws");
         result.Error.ShouldBe(expectedException, "Error should be the thrown exception");
+    }
+
+    [Fact]
+    [Trait(Constants.TraitName, Constants.TestTitle)]
+    public async Task InvokeAsync_WhenBoardDoesNotExist_ReturnsNotFoundException()
+    {
+        // Arrange
+        var query = new GetCharacterPageQuery(BoardId, 1, 10, "Name", "Asc", null);
+        _existsBoard
+            .BoardExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .Returns(new EntityExistence(false, 0));
+
+        // Act
+        var result = await _sut.InvokeAsync(query);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse("Query should fail when the board does not exist");
+        result.Error.ShouldBeOfType<NotFoundException>("Error should be NotFoundException");
     }
 }

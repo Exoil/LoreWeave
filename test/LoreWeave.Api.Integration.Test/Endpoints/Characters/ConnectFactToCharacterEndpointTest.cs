@@ -14,9 +14,9 @@ namespace LoreWeave.Api.Integration.Test.Endpoints.Characters;
 
 public class ConnectFactToCharacterEndpointTest : IntegrationTestBase
 {
-    public const string CharacterEndpoint = "/v1/characters";
+    private string CharacterEndpoint => $"/v1/boards/{BoardId}/characters";
 
-    private static string ConnectEndpoint(Guid characterId, Guid factId) =>
+    private string ConnectEndpoint(Guid characterId, Guid factId) =>
         $"{CharacterEndpoint}/{characterId}/facts/{factId}";
 
     [Fact]

@@ -16,6 +16,8 @@ namespace LoreWeave.Application.Test.Commands.Characters.CommandHandlers;
 
 public class UpdateCharacterCommandHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsCharacter _existsCharacter;
     private readonly ICharacterWriter _characterWriter;
     private readonly ITransaction _transaction;
@@ -41,9 +43,9 @@ public class UpdateCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenCharacterExistsAndVersionMatches_ReturnsSuccess()
     {
         // Arrange
-        var command = new UpdateCharacterCommand(CharacterId, "UpdatedName", CurrentVersion);
+        var command = new UpdateCharacterCommand(BoardId, CharacterId, "UpdatedName", CurrentVersion);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, CurrentVersion));
 
         // Act
@@ -59,9 +61,9 @@ public class UpdateCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenCharacterDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new UpdateCharacterCommand(CharacterId, "UpdatedName", CurrentVersion);
+        var command = new UpdateCharacterCommand(BoardId, CharacterId, "UpdatedName", CurrentVersion);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -77,9 +79,9 @@ public class UpdateCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenVersionDoesNotMatch_ReturnsPreconditionException()
     {
         // Arrange
-        var command = new UpdateCharacterCommand(CharacterId, "UpdatedName", CurrentVersion);
+        var command = new UpdateCharacterCommand(BoardId, CharacterId, "UpdatedName", CurrentVersion);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, CurrentVersion + 1));
 
         // Act
@@ -95,10 +97,10 @@ public class UpdateCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
     {
         // Arrange
-        var command = new UpdateCharacterCommand(CharacterId, "UpdatedName", CurrentVersion);
+        var command = new UpdateCharacterCommand(BoardId, CharacterId, "UpdatedName", CurrentVersion);
         var expectedException = new Exception("DB error");
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, CurrentVersion));
         _characterWriter
             .UpdateAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<LoreWeave.Domain.Entities.Characters.Commands.UpdateCharacter>())

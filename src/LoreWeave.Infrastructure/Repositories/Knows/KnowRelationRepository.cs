@@ -36,14 +36,16 @@ public class KnowRelationRepository : IExistsKnowRelation, IKnowRelationReader, 
 
     public async Task<EntityExistence> KnowRelationExistsAsync(
         ITransaction transaction,
+        Guid boardId,
         Guid fromCharacterId,
         Guid toCharacterId)
     {
         const string queryString = @"
-            MATCH (fromCh:Character {Id: $FromCharacterId})-[r:KNOWS]->(toCh:Character {Id: $ToCharacterId})
+            MATCH (fromCh:Character {Id: $FromCharacterId, BoardId: $BoardId})-[r:KNOWS]->(toCh:Character {Id: $ToCharacterId, BoardId: $BoardId})
             RETURN r IS NOT NULL AS Exists, coalesce(r.Version, 0) AS Version";
         var query = new Query(queryString, new
         {
+            BoardId = boardId.ToDatabaseId(),
             FromCharacterId = fromCharacterId.ToDatabaseId(),
             ToCharacterId = toCharacterId.ToDatabaseId()
         });
@@ -64,11 +66,12 @@ public class KnowRelationRepository : IExistsKnowRelation, IKnowRelationReader, 
 
     public async Task<KnowRelation> GetKnowRelationAsync(
         ITransaction transaction,
+        Guid boardId,
         Guid fromCharacterId,
         Guid toCharacterId)
     {
         const string queryString = @"
-            MATCH (fromCh:Character {Id: $FromCharacterId})-[r:KNOWS]->(toCh:Character {Id: $ToCharacterId})
+            MATCH (fromCh:Character {Id: $FromCharacterId, BoardId: $BoardId})-[r:KNOWS]->(toCh:Character {Id: $ToCharacterId, BoardId: $BoardId})
             RETURN
                 r.Id AS Id,
                 r.Description AS Description,
@@ -78,6 +81,7 @@ public class KnowRelationRepository : IExistsKnowRelation, IKnowRelationReader, 
                 toCh.Id AS ToCharacterId";
         var query = new Query(queryString, new
         {
+            BoardId = boardId.ToDatabaseId(),
             FromCharacterId = fromCharacterId.ToDatabaseId(),
             ToCharacterId = toCharacterId.ToDatabaseId()
         });
@@ -129,18 +133,22 @@ public class KnowRelationRepository : IExistsKnowRelation, IKnowRelationReader, 
 
     public async Task<IReadOnlyCollection<Guid>> FindPathBetweenCharactersAsync(
         ITransaction transaction,
+        Guid boardId,
         Guid fromCharacterId,
         Guid toCharacterId,
         int maxHops)
     {
+        // KNOWS only ever connects characters of the same board, so scoping
+        // both endpoints by BoardId keeps the whole path on the board.
         var queryString = $@"
             MATCH path = shortestPath(
-                (from:Character {{Id: $FromCharacterId}})-[:KNOWS*..{maxHops}]-(to:Character {{Id: $ToCharacterId}})
+                (from:Character {{Id: $FromCharacterId, BoardId: $BoardId}})-[:KNOWS*..{maxHops}]-(to:Character {{Id: $ToCharacterId, BoardId: $BoardId}})
             )
             RETURN [node IN nodes(path) | node.Id] AS CharacterIds";
 
         var query = new Query(queryString, new
         {
+            BoardId = boardId.ToDatabaseId(),
             FromCharacterId = fromCharacterId.ToDatabaseId(),
             ToCharacterId = toCharacterId.ToDatabaseId()
         });

@@ -12,7 +12,7 @@ namespace LoreWeave.Api.Integration.Test.Endpoints.Characters;
 
 public class GetCharacterByIdEndpointTest : IntegrationTestBase
 {
-    public const string Endpoint = "/v1/characters";
+    private string Endpoint => $"/v1/boards/{BoardId}/characters";
 
     [Fact]
     public async Task GetCharacter_GetOk()

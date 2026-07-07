@@ -17,6 +17,8 @@ namespace LoreWeave.Application.Test.Commands.Facts.CommandHandlers;
 
 public class CreateFactCommandHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsCharacter _existsCharacter;
     private readonly IFactWriter _factWriter;
     private readonly ITransaction _transaction;
@@ -43,9 +45,9 @@ public class CreateFactCommandHandlerTest
         // Arrange
         const string title = "The Broken Crown";
         const string content = "A relic lost in the northern wastes.";
-        var command = new CreateFactCommand(_characterId, title, content);
+        var command = new CreateFactCommand(BoardId, _characterId, title, content);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _characterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _characterId)
             .Returns(new EntityExistence(true, 1));
 
         // Act
@@ -64,9 +66,9 @@ public class CreateFactCommandHandlerTest
         // Arrange
         const string title = "The Broken Crown";
         const string content = "A relic lost in the northern wastes.";
-        var command = new CreateFactCommand(_characterId, title, content);
+        var command = new CreateFactCommand(BoardId, _characterId, title, content);
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _characterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _characterId)
             .Returns(new EntityExistence(true, 1));
 
         // Act
@@ -90,9 +92,9 @@ public class CreateFactCommandHandlerTest
     public async Task InvokeAsync_WhenCharacterDoesNotExist_ReturnsNotFoundExceptionAndDoesNotPersist()
     {
         // Arrange
-        var command = new CreateFactCommand(_characterId, "Title", "Content");
+        var command = new CreateFactCommand(BoardId, _characterId, "Title", "Content");
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _characterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _characterId)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -115,10 +117,10 @@ public class CreateFactCommandHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
     {
         // Arrange
-        var command = new CreateFactCommand(_characterId, "Title", "Content");
+        var command = new CreateFactCommand(BoardId, _characterId, "Title", "Content");
         var expectedException = new Exception("DB error");
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _characterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _characterId)
             .Returns(new EntityExistence(true, 1));
         _factWriter
             .CreateAsync(
@@ -142,9 +144,9 @@ public class CreateFactCommandHandlerTest
     public async Task InvokeAsync_WhenTitleIsTooLong_ReturnsValueObjectExceptionAndRollsBack()
     {
         // Arrange
-        var command = new CreateFactCommand(_characterId, new string('*', 101), "Content");
+        var command = new CreateFactCommand(BoardId, _characterId, new string('*', 101), "Content");
         _existsCharacter
-            .CharacterExistsAsync(Arg.Any<ITransaction>(), _characterId)
+            .CharacterExistsAsync(Arg.Any<ITransaction>(), BoardId, _characterId)
             .Returns(new EntityExistence(true, 1));
 
         // Act

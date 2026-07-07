@@ -2,10 +2,12 @@ using MessagePipe;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using LoreWeave.Application.Commands.Boards.CommandHandlers;
 using LoreWeave.Application.Commands.Characters.CommandHandlers;
 using LoreWeave.Application.Commands.Facts.CommandHandlers;
 using LoreWeave.Application.Commands.Knows.CommandHandlers;
 using LoreWeave.Application.Filters;
+using LoreWeave.Application.Queries.Boards.QueryHandlers;
 using LoreWeave.Application.Queries.Characters.QueryHandlers;
 using LoreWeave.Application.Queries.Facts.QueryHandlers;
 using LoreWeave.Application.Queries.Knows.QueryHandlers;
@@ -23,6 +25,11 @@ public static class HandlerConfiguration
                 options.RequestHandlerLifetime = InstanceLifetime.Scoped;
                 options.AddGlobalAsyncRequestHandlerFilter(typeof(LogFilter<,>), 0);
             })
+            .AddAsyncRequestHandler<CreateBoardCommandHandler>()
+            .AddAsyncRequestHandler<UpdateBoardCommandHandler>()
+            .AddAsyncRequestHandler<DeleteBoardCommandHandler>()
+            .AddAsyncRequestHandler<GetBoardByIdQueryHandler>()
+            .AddAsyncRequestHandler<GetBoardsQueryHandler>()
             .AddAsyncRequestHandler<CreateCharacterCommandHandler>()
             .AddAsyncRequestHandler<UpdateCharacterCommandHandler>()
             .AddAsyncRequestHandler<DeleteCharacterCommandHandler>()

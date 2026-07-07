@@ -17,7 +17,7 @@ public static class FactsEndpoints
     {
         public void MapFactsEndpoints() =>
             webApplication
-                .MapGroup("v1/facts")
+                .MapGroup("v1/boards/{boardId:guid}/facts")
                 .MapFactsEndpoints();
     }
 
@@ -31,10 +31,11 @@ public static class FactsEndpoints
                     async (
                             [FromServices] IHttpContextAccessor httpContextAccessor,
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid id,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<GetFactByIdQuery, FactPayload>(
-                            new GetFactByIdQuery(id),
+                            new GetFactByIdQuery(boardId, id),
                             data =>
                             {
                                 httpContextAccessor.HttpContext!.Response.Headers.ETag = new StringValues(data.Etag);
@@ -48,13 +49,14 @@ public static class FactsEndpoints
                     "/{id:guid}",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid id,
                             [FromHeader(Name = HeadersConstants.IfMatch)]
                             string version,
                             [FromBody] UpdateFactDto updateFact,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<UpdateFactCommand>(
-                            updateFact.ToCommand(id, version),
+                            updateFact.ToCommand(boardId, id, version),
                             Results.NoContent,
                             cancellationToken));
 
@@ -63,10 +65,11 @@ public static class FactsEndpoints
                     "/{id:guid}",
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
+                            [FromRoute] Guid boardId,
                             [FromRoute] Guid id,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<DeleteFactCommand>(
-                            new DeleteFactCommand(id),
+                            new DeleteFactCommand(boardId, id),
                             Results.NoContent,
                             cancellationToken));
         }

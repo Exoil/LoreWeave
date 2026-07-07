@@ -19,6 +19,8 @@ namespace LoreWeave.Application.Test.Queries.Knows.QueryHandlers;
 
 public class GetKnowRelationQueryHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsKnowRelation _existsKnowRelation;
     private readonly IKnowRelationReader _knowRelationReader;
     private readonly GetKnowRelationQueryHandler _sut;
@@ -43,7 +45,7 @@ public class GetKnowRelationQueryHandlerTest
     public async Task InvokeAsync_WhenRelationExists_ReturnsKnowRelationPayload()
     {
         // Arrange
-        var query = new GetKnowRelationQuery(_fromGuid, _toGuid);
+        var query = new GetKnowRelationQuery(BoardId, _fromGuid, _toGuid);
         var knowRelation = new KnowRelation(
             Guid.CreateVersion7(),
             "Knows well",
@@ -53,10 +55,10 @@ public class GetKnowRelationQueryHandlerTest
             version: 3);
 
         _existsKnowRelation
-            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), _fromGuid, _toGuid)
+            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromGuid, _toGuid)
             .Returns(new EntityExistence(true, knowRelation.Version));
         _knowRelationReader
-            .GetKnowRelationAsync(Arg.Any<ITransaction>(), _fromGuid, _toGuid)
+            .GetKnowRelationAsync(Arg.Any<ITransaction>(), BoardId, _fromGuid, _toGuid)
             .Returns(knowRelation);
 
         // Act
@@ -78,9 +80,9 @@ public class GetKnowRelationQueryHandlerTest
     public async Task InvokeAsync_WhenRelationDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var query = new GetKnowRelationQuery(_fromGuid, _toGuid);
+        var query = new GetKnowRelationQuery(BoardId, _fromGuid, _toGuid);
         _existsKnowRelation
-            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), _fromGuid, _toGuid)
+            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromGuid, _toGuid)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -92,7 +94,7 @@ public class GetKnowRelationQueryHandlerTest
 
         await _knowRelationReader
             .DidNotReceive()
-            .GetKnowRelationAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>());
+            .GetKnowRelationAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<Guid>());
     }
 
     [Fact]
@@ -100,13 +102,13 @@ public class GetKnowRelationQueryHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsException()
     {
         // Arrange
-        var query = new GetKnowRelationQuery(_fromGuid, _toGuid);
+        var query = new GetKnowRelationQuery(BoardId, _fromGuid, _toGuid);
         var expectedException = new Exception("DB error");
         _existsKnowRelation
-            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), _fromGuid, _toGuid)
+            .KnowRelationExistsAsync(Arg.Any<ITransaction>(), BoardId, _fromGuid, _toGuid)
             .Returns(new EntityExistence(true, 1));
         _knowRelationReader
-            .GetKnowRelationAsync(Arg.Any<ITransaction>(), _fromGuid, _toGuid)
+            .GetKnowRelationAsync(Arg.Any<ITransaction>(), BoardId, _fromGuid, _toGuid)
             .ThrowsAsync(expectedException);
 
         // Act

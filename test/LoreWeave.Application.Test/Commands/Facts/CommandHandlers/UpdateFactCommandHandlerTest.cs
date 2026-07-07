@@ -17,6 +17,8 @@ namespace LoreWeave.Application.Test.Commands.Facts.CommandHandlers;
 
 public class UpdateFactCommandHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsFact _existsFact;
     private readonly IFactWriter _factWriter;
     private readonly ITransaction _transaction;
@@ -42,9 +44,9 @@ public class UpdateFactCommandHandlerTest
     public async Task InvokeAsync_WhenFactExistsAndVersionMatches_ReturnsSuccess()
     {
         // Arrange
-        var command = new UpdateFactCommand(FactId, "UpdatedTitle", "UpdatedContent", CurrentVersion);
+        var command = new UpdateFactCommand(BoardId, FactId, "UpdatedTitle", "UpdatedContent", CurrentVersion);
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .FactExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, CurrentVersion));
 
         // Act
@@ -60,9 +62,9 @@ public class UpdateFactCommandHandlerTest
     public async Task InvokeAsync_WhenFactDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new UpdateFactCommand(FactId, "UpdatedTitle", "UpdatedContent", CurrentVersion);
+        var command = new UpdateFactCommand(BoardId, FactId, "UpdatedTitle", "UpdatedContent", CurrentVersion);
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .FactExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -78,9 +80,9 @@ public class UpdateFactCommandHandlerTest
     public async Task InvokeAsync_WhenVersionDoesNotMatch_ReturnsPreconditionException()
     {
         // Arrange
-        var command = new UpdateFactCommand(FactId, "UpdatedTitle", "UpdatedContent", CurrentVersion);
+        var command = new UpdateFactCommand(BoardId, FactId, "UpdatedTitle", "UpdatedContent", CurrentVersion);
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .FactExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, CurrentVersion + 1));
 
         // Act
@@ -96,10 +98,10 @@ public class UpdateFactCommandHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
     {
         // Arrange
-        var command = new UpdateFactCommand(FactId, "UpdatedTitle", "UpdatedContent", CurrentVersion);
+        var command = new UpdateFactCommand(BoardId, FactId, "UpdatedTitle", "UpdatedContent", CurrentVersion);
         var expectedException = new Exception("DB error");
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .FactExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<Guid>())
             .Returns(new EntityExistence(true, CurrentVersion));
         _factWriter
             .UpdateAsync(Arg.Any<ITransaction>(), Arg.Any<UpdateFact>())

@@ -3,8 +3,11 @@ using NSubstitute.ExceptionExtensions;
 
 using LoreWeave.Application.Commands.Characters;
 using LoreWeave.Application.Commands.Characters.CommandHandlers;
-using LoreWeave.Domain.Transactions;
+using LoreWeave.Domain.Exceptions;
+using LoreWeave.Domain.Models;
+using LoreWeave.Domain.Repositories.Boards;
 using LoreWeave.Domain.Repositories.Characters;
+using LoreWeave.Domain.Transactions;
 
 using Serilog;
 
@@ -14,19 +17,26 @@ namespace LoreWeave.Application.Test.Commands.Characters.CommandHandlers;
 
 public class CreateCharacterCommandHandlerTest
 {
+    private readonly IExistsBoard _existsBoard;
     private readonly ICharacterWriter _characterWriter;
     private readonly ITransaction _transaction;
     private readonly CreateCharacterCommandHandler _sut;
 
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     public CreateCharacterCommandHandlerTest()
     {
+        _existsBoard = Substitute.For<IExistsBoard>();
+        _existsBoard
+            .BoardExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .Returns(new EntityExistence(true, 1));
         _characterWriter = Substitute.For<ICharacterWriter>();
         var logger = Substitute.For<ILogger>();
         _transaction = Substitute.For<ITransaction>();
         var transactionFactory = Substitute.For<ITransactionFactory>();
         transactionFactory.CreateAsync().Returns(_transaction);
 
-        _sut = new CreateCharacterCommandHandler(transactionFactory, _characterWriter, logger);
+        _sut = new CreateCharacterCommandHandler(transactionFactory, _existsBoard, _characterWriter, logger);
     }
 
     [Fact]
@@ -34,7 +44,7 @@ public class CreateCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenCharacterIsCreated_ReturnsGuid()
     {
         // Arrange
-        var command = new CreateCharacterCommand(Guid.CreateVersion7(), "TestCharacter");
+        var command = new CreateCharacterCommand(BoardId, Guid.CreateVersion7(), "TestCharacter");
 
         // Act
         var result = await _sut.InvokeAsync(command);
@@ -50,10 +60,10 @@ public class CreateCharacterCommandHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
     {
         // Arrange
-        var command = new CreateCharacterCommand(Guid.CreateVersion7(), "TestCharacter");
+        var command = new CreateCharacterCommand(BoardId, Guid.CreateVersion7(), "TestCharacter");
         var expectedException = new Exception("DB error");
         _characterWriter
-            .CreateAsync(Arg.Any<ITransaction>(), Arg.Any<LoreWeave.Domain.Entities.Characters.Commands.CreateCharacter>())
+            .CreateAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>(), Arg.Any<LoreWeave.Domain.Entities.Characters.Commands.CreateCharacter>())
             .ThrowsAsync(expectedException);
 
         // Act
@@ -63,6 +73,25 @@ public class CreateCharacterCommandHandlerTest
         result.IsSuccess.ShouldBeFalse("Result should be failure when repository throws");
         result.Error.ShouldBe(expectedException, "Error should be the thrown exception");
         await _transaction.Received(1).RollbackAsync();
+        await _transaction.DidNotReceive().CommitAsync();
+    }
+
+    [Fact]
+    [Trait(Constants.TraitName, Constants.TestTitle)]
+    public async Task InvokeAsync_WhenBoardDoesNotExist_ReturnsNotFoundException()
+    {
+        // Arrange
+        var command = new CreateCharacterCommand(BoardId, Guid.CreateVersion7(), "TestCharacter");
+        _existsBoard
+            .BoardExistsAsync(Arg.Any<ITransaction>(), Arg.Any<Guid>())
+            .Returns(new EntityExistence(false, 0));
+
+        // Act
+        var result = await _sut.InvokeAsync(command);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse("Create should fail when the board does not exist");
+        result.Error.ShouldBeOfType<NotFoundException>("Error should be NotFoundException");
         await _transaction.DidNotReceive().CommitAsync();
     }
 }

@@ -17,6 +17,8 @@ namespace LoreWeave.Application.Test.Commands.Facts.CommandHandlers;
 
 public class DeleteFactCommandHandlerTest
 {
+    private static readonly Guid BoardId = Guid.NewGuid();
+
     private readonly IExistsFact _existsFact;
     private readonly IFactWriter _factWriter;
     private readonly ITransaction _transaction;
@@ -41,9 +43,9 @@ public class DeleteFactCommandHandlerTest
     public async Task InvokeAsync_WhenFactExists_ReturnsSuccess()
     {
         // Arrange
-        var command = new DeleteFactCommand(FactId);
+        var command = new DeleteFactCommand(BoardId, FactId);
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), FactId)
+            .FactExistsAsync(Arg.Any<ITransaction>(), BoardId, FactId)
             .Returns(new EntityExistence(true, 1));
 
         // Act
@@ -61,9 +63,9 @@ public class DeleteFactCommandHandlerTest
     public async Task InvokeAsync_WhenFactDoesNotExist_ReturnsNotFoundException()
     {
         // Arrange
-        var command = new DeleteFactCommand(FactId);
+        var command = new DeleteFactCommand(BoardId, FactId);
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), FactId)
+            .FactExistsAsync(Arg.Any<ITransaction>(), BoardId, FactId)
             .Returns(new EntityExistence(false, 0));
 
         // Act
@@ -80,10 +82,10 @@ public class DeleteFactCommandHandlerTest
     public async Task InvokeAsync_WhenRepositoryThrows_ReturnsExceptionAndRollsBack()
     {
         // Arrange
-        var command = new DeleteFactCommand(FactId);
+        var command = new DeleteFactCommand(BoardId, FactId);
         var expectedException = new Exception("DB error");
         _existsFact
-            .FactExistsAsync(Arg.Any<ITransaction>(), FactId)
+            .FactExistsAsync(Arg.Any<ITransaction>(), BoardId, FactId)
             .Returns(new EntityExistence(true, 1));
         _factWriter
             .DeleteAsync(Arg.Any<ITransaction>(), Arg.Any<DeleteFact>())

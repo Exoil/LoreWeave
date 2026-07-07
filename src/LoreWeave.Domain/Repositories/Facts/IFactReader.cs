@@ -5,5 +5,5 @@ namespace LoreWeave.Domain.Repositories.Facts;
 
 public interface IFactReader
 {
-    Task<Fact> GetFactAsync(ITransaction transaction, Guid id);
+    Task<Fact> GetFactAsync(ITransaction transaction, Guid boardId, Guid id);
 }

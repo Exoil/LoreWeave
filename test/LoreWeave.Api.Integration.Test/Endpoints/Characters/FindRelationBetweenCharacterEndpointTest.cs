@@ -14,9 +14,9 @@ namespace LoreWeave.Api.Integration.Test.Endpoints.Characters;
 
 public class FindRelationBetweenCharacterEndpointTest : IntegrationTestBase
 {
-    public const string CharacterEndpoint = "/v1/characters";
-    public const string KnowEndpoint = "/v1/characters/knows";
-    public const string PathEndpoint = "/v1/characters/path";
+    private string CharacterEndpoint => $"/v1/boards/{BoardId}/characters";
+    private string KnowEndpoint => $"/v1/boards/{BoardId}/characters/knows";
+    private string PathEndpoint => $"/v1/boards/{BoardId}/characters/path";
 
     [Fact]
     [Trait(Constants.TraitName, Constants.TestTitle)]

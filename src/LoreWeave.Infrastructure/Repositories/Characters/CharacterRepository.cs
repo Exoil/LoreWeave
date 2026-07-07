@@ -16,15 +16,16 @@ namespace LoreWeave.Infrastructure.Repositories.Characters;
 
 public class CharacterRepository : IExistsCharacter, ICharacterReader, ICharacterWriter
 {
-    public async Task CreateAsync(ITransaction transaction, CreateCharacter createCharacter)
+    public async Task CreateAsync(ITransaction transaction, Guid boardId, CreateCharacter createCharacter)
     {
         const string queryString = @"
-            CREATE (ch:Character {Id: $CharacterId, Name: $Name, Version: 1})
+            CREATE (ch:Character {Id: $CharacterId, BoardId: $BoardId, Name: $Name, Version: 1})
             RETURN ID(ch) AS CharacterNodeId";
         var query = new Query(queryString,
             new
             {
                 CharacterId = createCharacter.Id.ToDatabaseId(),
+                BoardId = boardId.ToDatabaseId(),
                 createCharacter.Name
             });
 
@@ -48,14 +49,15 @@ public class CharacterRepository : IExistsCharacter, ICharacterReader, ICharacte
         await transaction.AsNeo4jTransaction().RunAsync(query);
     }
 
-    public async Task<EntityExistence> CharacterExistsAsync(ITransaction transaction, Guid id)
+    public async Task<EntityExistence> CharacterExistsAsync(ITransaction transaction, Guid boardId, Guid id)
     {
         const string queryString = @"
-            MATCH (ch:Character {Id: $Id })
+            MATCH (ch:Character {Id: $Id, BoardId: $BoardId })
             RETURN ch IS NOT NULL AS Exists, coalesce(ch.Version, 0) AS Version";
         var query = new Query(queryString, new
         {
-            Id = id.ToDatabaseId()
+            Id = id.ToDatabaseId(),
+            BoardId = boardId.ToDatabaseId()
         });
 
         var cursorResult = await transaction.AsNeo4jTransaction().RunAsync(query);
@@ -85,14 +87,15 @@ public class CharacterRepository : IExistsCharacter, ICharacterReader, ICharacte
         await transaction.AsNeo4jTransaction().RunAsync(query);
     }
 
-    public async Task<Character> GetAsync(ITransaction transaction, Guid id)
+    public async Task<Character> GetAsync(ITransaction transaction, Guid boardId, Guid id)
     {
         const string queryString = @"
-            MATCH (ch:Character {Id: $Id})
+            MATCH (ch:Character {Id: $Id, BoardId: $BoardId})
             RETURN ch.Id AS Id, ch.Name AS Name, ch.Version AS Version";
         var query = new Query(queryString, new
         {
-            Id = id.ToDatabaseId()
+            Id = id.ToDatabaseId(),
+            BoardId = boardId.ToDatabaseId()
         });
 
         var cursorResult = await transaction.AsNeo4jTransaction().RunAsync(query);
@@ -106,6 +109,7 @@ public class CharacterRepository : IExistsCharacter, ICharacterReader, ICharacte
 
     public async Task<IReadOnlyCollection<CharacterWithKnowRelation>> GetPageAsync(
         ITransaction transaction,
+        Guid boardId,
         GetCharacterPage characterPage,
         CharacterSearchFilter searchFilter)
     {
@@ -113,7 +117,7 @@ public class CharacterRepository : IExistsCharacter, ICharacterReader, ICharacte
         var limit = (int)characterPage.Size;
 
         var queryStringBuilder = new StringBuilder(
-            "MATCH (ch:Character)");
+            "MATCH (ch:Character {BoardId: $BoardId})");
 
         queryStringBuilder
             .AppendLine("WHERE $NameFilter = '' OR toLower(ch.Name) CONTAINS toLower($NameFilter)")
@@ -132,6 +136,7 @@ public class CharacterRepository : IExistsCharacter, ICharacterReader, ICharacte
 
         var query = new Query(queryStringBuilder.ToString(), new
         {
+            BoardId = boardId.ToDatabaseId(),
             characterPage.SortType,
             characterPage.SortOrder,
             Skip = skip,

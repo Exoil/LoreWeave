@@ -3,10 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Neo4j.Driver;
 
+using LoreWeave.Domain.Repositories.Boards;
 using LoreWeave.Domain.Repositories.Characters;
 using LoreWeave.Domain.Repositories.Facts;
 using LoreWeave.Domain.Repositories.Knows;
 using LoreWeave.Domain.Transactions;
+using LoreWeave.Infrastructure.Repositories.Boards;
 using LoreWeave.Infrastructure.Repositories.Characters;
 using LoreWeave.Infrastructure.Repositories.Facts;
 using LoreWeave.Infrastructure.Repositories.Knows;
@@ -35,6 +37,12 @@ public static class RegisterDatabase
             .AddScoped<IAsyncSession>(serviceProvider =>
                 serviceProvider.GetRequiredService<IDriver>().AsyncSession())
             .AddScoped<ITransactionFactory, Neo4jTransactionFactory>();
+
+        serviceCollection
+            .AddScoped<BoardRepository>()
+            .AddScoped<IExistsBoard>(serviceProvider => serviceProvider.GetRequiredService<BoardRepository>())
+            .AddScoped<IBoardReader>(serviceProvider => serviceProvider.GetRequiredService<BoardRepository>())
+            .AddScoped<IBoardWriter>(serviceProvider => serviceProvider.GetRequiredService<BoardRepository>());
 
         serviceCollection
             .AddScoped<CharacterRepository>()

@@ -1,5 +1,7 @@
 using Neo4j.Driver;
 
+using LoreWeave.Domain.Entities.Boards;
+using LoreWeave.Domain.Entities.Boards.Commands;
 using LoreWeave.Domain.Entities.Characters;
 using LoreWeave.Domain.Entities.Characters.Commands;
 using LoreWeave.Domain.Entities.Facts;
@@ -12,6 +14,27 @@ namespace LoreWeave.Infrastructure.Repositories.Extensions;
 
 public static class RecordExtensions
 {
+    public static Board ToBoard(this IRecord record)
+    {
+        var createBoard = new CreateBoard(
+            record["Id"].As<string>().DatabaseIdToGuid(),
+            record["Name"].As<string>());
+
+        var configuration = new BoardConfiguration(
+            record["CharacterNodeColor"].As<string>(),
+            record["FactNodeColor"].As<string>(),
+            record["RelationEdgeColor"].As<string>(),
+            record["FactEdgeColor"].As<string>(),
+            record["PathHighlightColor"].As<string>(),
+            record["NodeRadius"].As<int>(),
+            record["EdgeWidth"].As<int>(),
+            record["CurvedEdges"].As<bool>(),
+            record["ShowGrid"].As<bool>(),
+            record["ScalingObjects"].As<bool>());
+
+        return new Board(createBoard, configuration, (ushort)record["Version"].As<int>());
+    }
+
     public static Character ToCharacter(this IRecord record)
     {
         var createCharacter = new CreateCharacter(

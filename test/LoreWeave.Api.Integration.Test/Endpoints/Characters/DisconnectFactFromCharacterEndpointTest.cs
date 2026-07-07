@@ -14,10 +14,10 @@ namespace LoreWeave.Api.Integration.Test.Endpoints.Characters;
 
 public class DisconnectFactFromCharacterEndpointTest : IntegrationTestBase
 {
-    public const string CharacterEndpoint = "/v1/characters";
-    public const string FactEndpoint = "/v1/facts";
+    private string CharacterEndpoint => $"/v1/boards/{BoardId}/characters";
+    private string FactEndpoint => $"/v1/boards/{BoardId}/facts";
 
-    private static string ConnectionEndpoint(Guid characterId, Guid factId) =>
+    private string ConnectionEndpoint(Guid characterId, Guid factId) =>
         $"{CharacterEndpoint}/{characterId}/facts/{factId}";
 
     [Fact]

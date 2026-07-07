@@ -5,7 +5,7 @@ namespace LoreWeave.Domain.Repositories.Characters;
 
 public interface ICharacterWriter
 {
-    Task CreateAsync(ITransaction transaction, CreateCharacter createCharacter);
+    Task CreateAsync(ITransaction transaction, Guid boardId, CreateCharacter createCharacter);
 
     Task UpdateAsync(ITransaction transaction, Guid id, UpdateCharacter updateCharacter);
 

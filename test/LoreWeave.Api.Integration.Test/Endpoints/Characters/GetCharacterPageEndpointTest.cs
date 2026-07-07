@@ -14,11 +14,11 @@ namespace LoreWeave.Api.Integration.Test.Endpoints.Characters;
 
 public class GetCharacterPageEndpointTest : IntegrationTestBase
 {
-    public const string Endpoint = "/v1/characters";
+    private string Endpoint => $"/v1/boards/{BoardId}/characters";
 
-    public const string KnowEndpoint = "/v1/characters/knows";
+    private string KnowEndpoint => $"/v1/boards/{BoardId}/characters/knows";
 
-    private static string FactEndpoint(Guid characterId) => $"{Endpoint}/{characterId}/facts";
+    private string FactEndpoint(Guid characterId) => $"{Endpoint}/{characterId}/facts";
 
     [Theory]
     [InlineData(1, 10, "Name", "Asc")]

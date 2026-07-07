@@ -43,10 +43,10 @@ public class FindRelationBetweenCharacterQueryHandler
             var toCharacterId = request.ToCharacterId;
 
             var fromCharacterExists = await _existsCharacter
-                .CharacterExistsAsync(transaction, fromCharacterId);
+                .CharacterExistsAsync(transaction, request.BoardId, fromCharacterId);
 
             var toCharacterExists = await _existsCharacter
-                .CharacterExistsAsync(transaction, toCharacterId);
+                .CharacterExistsAsync(transaction, request.BoardId, toCharacterId);
 
             if (!fromCharacterExists.Exists)
             {
@@ -62,6 +62,7 @@ public class FindRelationBetweenCharacterQueryHandler
 
             var path = await _knowRelationReader.FindPathBetweenCharactersAsync(
                 transaction,
+                request.BoardId,
                 fromCharacterId,
                 toCharacterId,
                 request.MaxHops);

@@ -44,6 +44,7 @@ public class Program
         app.UseHttpsRedirection();
         app.UseCors();
         app.MapUtilityEndpoints();
+        app.MapBoardEndpoints();
         app.MapCharacterEndpoints();
         app.MapFactsEndpoints();
 

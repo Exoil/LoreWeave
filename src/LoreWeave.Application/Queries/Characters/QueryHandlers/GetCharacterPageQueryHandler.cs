@@ -2,7 +2,10 @@ using MessagePipe;
 
 using LoreWeave.Application.Models;
 using LoreWeave.Domain.Entities.Characters.Queries;
+using LoreWeave.Domain.Exceptions;
+using LoreWeave.Domain.Exceptions.Enums;
 using LoreWeave.Domain.Models;
+using LoreWeave.Domain.Repositories.Boards;
 using LoreWeave.Domain.Repositories.Characters;
 using LoreWeave.Domain.Transactions;
 
@@ -13,16 +16,19 @@ namespace LoreWeave.Application.Queries.Characters.QueryHandlers;
 public class GetCharacterPageQueryHandler
     : IAsyncRequestHandler<GetCharacterPageQuery, Result<IReadOnlyCollection<CharacterPayloadWithRelations>, Exception>>
 {
+    private readonly IExistsBoard _existsBoard;
     private readonly ICharacterReader _characterReader;
     private readonly ILogger _logger;
     private readonly ITransactionFactory _transactionFactory;
 
     public GetCharacterPageQueryHandler(
         ITransactionFactory transactionFactory,
+        IExistsBoard existsBoard,
         ICharacterReader characterReader,
         ILogger logger)
     {
         _transactionFactory = transactionFactory;
+        _existsBoard = existsBoard;
         _characterReader = characterReader;
         _logger = logger;
     }
@@ -35,8 +41,17 @@ public class GetCharacterPageQueryHandler
 
         try
         {
+            var boardExists = await _existsBoard.BoardExistsAsync(transaction, request.BoardId);
+
+            if (!boardExists.Exists)
+            {
+                _logger.Error("Get character page fails for not existing board: {BoardId}", request.BoardId);
+                return new NotFoundException(Entities.Board);
+            }
+
             var character = await _characterReader.GetPageAsync(
                 transaction,
+                request.BoardId,
                 new GetCharacterPage(
                     request.Number,
                     request.Size,

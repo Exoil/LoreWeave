@@ -7,6 +7,7 @@ public interface IExistsKnowRelation
 {
     Task<EntityExistence> KnowRelationExistsAsync(
         ITransaction transaction,
+        Guid boardId,
         Guid fromCharacterId,
         Guid toCharacterId);
 }

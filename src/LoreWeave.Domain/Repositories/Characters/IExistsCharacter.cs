@@ -5,5 +5,5 @@ namespace LoreWeave.Domain.Repositories.Characters;
 
 public interface IExistsCharacter
 {
-    Task<EntityExistence> CharacterExistsAsync(ITransaction transaction, Guid id);
+    Task<EntityExistence> CharacterExistsAsync(ITransaction transaction, Guid boardId, Guid id);
 }
