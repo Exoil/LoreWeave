@@ -82,7 +82,7 @@ public class CreateFactCommandHandlerTest
                 Arg.Any<ITransaction>(),
                 _characterId,
                 Arg.Is<LoreWeave.Domain.Entities.Facts.Commands.CreateFact>(f =>
-                    f.Title == title
+                    f!.Title == title
                     && f.Content == content
                     && f.Id == result.Value));
     }
