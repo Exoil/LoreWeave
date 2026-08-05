@@ -1,0 +1,63 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "timezone": "Europe/Warsaw",
+  "labels": ["dependencies"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "rangeStrategy": "bump",
+  "automerge": true,
+  "automergeType": "pr",
+  "automergeStrategy": "squash",
+  "platformAutomerge": true,
+  "packageRules": [
+    {
+      "description": "Never open PRs for major upgrades (e.g. 11.1.0 -> 12.0.0)",
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
+      "description": "Group non-major NuGet updates into a single PR",
+      "matchManagers": ["nuget"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "nuget minor and patch",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps"
+    },
+    {
+      "description": "Keep test tooling in its own PR so failures are easy to attribute",
+      "matchManagers": ["nuget"],
+      "matchPackageNames": [
+        "xunit{/,}**",
+        "Microsoft.NET.Test.Sdk",
+        "NSubstitute",
+        "Shouldly",
+        "coverlet.collector",
+        "Testcontainers{/,}**",
+        "Microsoft.Extensions.TimeProvider.Testing",
+        "Microsoft.AspNetCore.Mvc.Testing"
+      ],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "test dependencies"
+    },
+    {
+      "description": "Group GitHub Actions updates",
+      "matchManagers": ["github-actions"],
+      "groupName": "github actions"
+    },
+    {
+      "description": "Group Docker base image updates",
+      "matchManagers": ["dockerfile"],
+      "groupName": "docker base images"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "labels": ["security"]
+  },
+  "ignorePaths": ["**/bin/**", "**/obj/**"]
+}
