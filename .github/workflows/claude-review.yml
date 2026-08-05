@@ -18,11 +18,16 @@ jobs:
     # Run on:
     #  - the PR open/reopen/ready events above, OR
     #  - any comment / review whose body contains "@claude".
+    # Never auto-run for Renovate's dependency PRs (they would burn quota on
+    # every bump). A human can still summon a review there by writing "@claude",
+    # since the actor is then the commenter, not the bot.
     if: |
-      github.event_name == 'pull_request' ||
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request != null && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
-      (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
+      github.actor != 'renovate[bot]' && (
+        github.event_name == 'pull_request' ||
+        (github.event_name == 'issue_comment' && github.event.issue.pull_request != null && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude'))
+      )
 
     runs-on: ubuntu-latest
 
