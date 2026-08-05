@@ -61,7 +61,7 @@ public class UpdateKnowRelationCommandHandlerTest
             .UpdateKnowRelationAsync(
                 Arg.Any<ITransaction>(),
                 Arg.Is<LoreWeave.Domain.Entities.Knows.Commands.UpdateKnowRelation>(r =>
-                    r.Description == description && !r.IsStrongRelation));
+                    r!.Description == description && !r.IsStrongRelation));
     }
 
     [Fact]

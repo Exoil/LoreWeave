@@ -53,7 +53,7 @@ public class DeleteBoardCommandHandlerTest
         result.IsSuccess.ShouldBeTrue("Board deletion should succeed when the board exists");
         await _boardWriter.Received(1).DeleteAsync(
             Arg.Any<ITransaction>(),
-            Arg.Is<DeleteBoard>(delete => delete.Id == BoardId));
+            Arg.Is<DeleteBoard>(delete => delete!.Id == BoardId));
         await _transaction.Received(1).CommitAsync();
     }
 

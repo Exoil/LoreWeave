@@ -61,7 +61,7 @@ public class CreateBoardCommandHandlerTest
         // Assert
         await _boardWriter.Received(1).CreateAsync(
             Arg.Any<ITransaction>(),
-            Arg.Is<CreateBoard>(create => create.Id == command.Id && create.Name == command.Name),
+            Arg.Is<CreateBoard>(create => create!.Id == command.Id && create.Name == command.Name),
             BoardConfiguration.Default);
     }
 

@@ -54,7 +54,7 @@ public class DeleteFactCommandHandlerTest
         // Assert
         result.IsSuccess.ShouldBeTrue("Delete should succeed when fact exists");
         await _factWriter.Received(1)
-            .DeleteAsync(Arg.Any<ITransaction>(), Arg.Is<DeleteFact>(deleteFact => deleteFact.Id == FactId));
+            .DeleteAsync(Arg.Any<ITransaction>(), Arg.Is<DeleteFact>(deleteFact => deleteFact!.Id == FactId));
         await _transaction.Received(1).CommitAsync();
     }
 

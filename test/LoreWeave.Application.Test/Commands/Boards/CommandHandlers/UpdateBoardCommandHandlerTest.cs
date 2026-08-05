@@ -69,7 +69,7 @@ public class UpdateBoardCommandHandlerTest
             Arg.Any<ITransaction>(),
             BoardId,
             Arg.Is<UpdateBoard>(update =>
-                update.Name == command.Name &&
+                update!.Name == command.Name &&
                 update.Configuration.CharacterNodeColor == Configuration.CharacterNodeColor &&
                 update.Configuration.NodeRadius == Configuration.NodeRadius));
         await _transaction.Received(1).CommitAsync();

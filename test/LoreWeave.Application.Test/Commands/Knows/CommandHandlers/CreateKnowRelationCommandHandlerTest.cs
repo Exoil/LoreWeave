@@ -65,7 +65,7 @@ public class CreateKnowRelationCommandHandlerTest
             .CreateKnowRelationAsync(
                 Arg.Any<ITransaction>(),
                 Arg.Is<LoreWeave.Domain.Entities.Knows.Commands.CreateKnowRelation>(r =>
-                    r.IsStrongRelation
+                    r!.IsStrongRelation
                     && r.Description == description
                     && r.FromCharacterId == _fromCharacterId
                     && r.ToCharacterId == _toCharacterId));
@@ -94,7 +94,7 @@ public class CreateKnowRelationCommandHandlerTest
             .Received(1)
             .CreateKnowRelationAsync(
                 Arg.Any<ITransaction>(),
-                Arg.Is<LoreWeave.Domain.Entities.Knows.Commands.CreateKnowRelation>(r => r.Description == description));
+                Arg.Is<LoreWeave.Domain.Entities.Knows.Commands.CreateKnowRelation>(r => r!.Description == description));
     }
 
     [Fact]
@@ -119,7 +119,7 @@ public class CreateKnowRelationCommandHandlerTest
             .Received(1)
             .CreateKnowRelationAsync(
                 Arg.Any<ITransaction>(),
-                Arg.Is<LoreWeave.Domain.Entities.Knows.Commands.CreateKnowRelation>(r => !r.IsStrongRelation));
+                Arg.Is<LoreWeave.Domain.Entities.Knows.Commands.CreateKnowRelation>(r => !r!.IsStrongRelation));
     }
 
     [Fact]
