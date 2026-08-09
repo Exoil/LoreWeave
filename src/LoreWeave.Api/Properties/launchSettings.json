@@ -8,7 +8,8 @@
             "sslPort": 44373,
             "Neo4j__ConnectionString": "bolt://192.168.0.1:30778",
             "Neo4j__UserName": "neo4j",
-            "Neo4j__Password": "SuperPassword123"
+            "Neo4j__Password": "SuperPassword123",
+            "Kafka__Broker__Uri": "localhost:19092"
         }
     },
     "profiles": {
@@ -22,7 +23,8 @@
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "Neo4j__ConnectionString": "bolt://192.168.0.1:30778",
                 "Neo4j__UserName": "neo4j",
-                "Neo4j__Password": "SuperPassword123"
+                "Neo4j__Password": "SuperPassword123",
+                "Kafka__Broker__Uri": "localhost:19092"
             }
         },
         "https": {
@@ -35,7 +37,8 @@
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "Neo4j__ConnectionString": "bolt://192.168.0.1:30778",
                 "Neo4j__UserName": "neo4j",
-                "Neo4j__Password": "SuperPassword123"
+                "Neo4j__Password": "SuperPassword123",
+                "Kafka__Broker__Uri": "localhost:19092"
             }
         },
         "IIS Express": {
@@ -46,7 +49,8 @@
                 "ASPNETCORE_ENVIRONMENT": "Development",
                 "Neo4j__ConnectionString": "bolt://192.168.0.1:30778",
                 "Neo4j__UserName": "neo4j",
-                "Neo4j__Password": "SuperPassword123"
+                "Neo4j__Password": "SuperPassword123",
+                "Kafka__Broker__Uri": "localhost:19092"
             }
         }
     }
