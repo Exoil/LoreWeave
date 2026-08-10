@@ -6,33 +6,96 @@ on:
   pull_request:
     branches: [master, main]
 
-jobs:
-  unit-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-      - name: Restore dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build --no-restore --configuration Debug
-      - name: Run unit tests
-        run: dotnet test --filter Category=Unit --no-build --configuration Debug --verbosity normal
+permissions:
+  contents: read
+  pull-requests: write # SonarCloud PR decoration
 
-  integration-tests:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Forked PRs have no access to SONAR_TOKEN, so analysis is skipped there.
+  # Tests still run in that case.
+  RUN_SONAR: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+  SONAR_SCANNER_VERSION: '11.2.1'
+  DOTNET_COVERAGE_VERSION: '18.9.0'
+
+jobs:
+  build-test-analyze:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Sonar needs full history for blame / new-code detection
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+
+      - name: Setup Java
+        if: env.RUN_SONAR == 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Cache SonarCloud packages
+        if: env.RUN_SONAR == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar-${{ env.SONAR_SCANNER_VERSION }}
+          restore-keys: ${{ runner.os }}-sonar-
+
+      # --allow-roll-forward: the tools target an older TFM than the .NET 10
+      # runtime installed above, so they need permission to roll forward.
+      - name: Install SonarScanner for .NET
+        if: env.RUN_SONAR == 'true'
+        run: dotnet tool install --global dotnet-sonarscanner --version ${{ env.SONAR_SCANNER_VERSION }} --allow-roll-forward
+
+      - name: Install dotnet-coverage
+        run: dotnet tool install --global dotnet-coverage --version ${{ env.DOTNET_COVERAGE_VERSION }} --allow-roll-forward
+
       - name: Restore dependencies
         run: dotnet restore
+
+      - name: Begin Sonar analysis
+        if: env.RUN_SONAR == 'true'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet-sonarscanner begin \
+            /k:"Exoil_LoreWeave" \
+            /o:"exoil" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.vscoveragexml.reportsPaths="coverage-unit.xml,coverage-integration.xml"
+
+      # --no-incremental: Sonar only analyses projects that actually compile in
+      # this build, so nothing may be skipped.
+      # TreatWarningsAsErrors is relaxed only while Sonar is active: the scanner
+      # injects SonarAnalyzer.CSharp, whose rule warnings would otherwise be
+      # promoted to errors by Directory.Build.props and fail the build.
       - name: Build
-        run: dotnet build --no-restore --configuration Debug
+        run: dotnet build --no-restore --no-incremental --configuration Debug -p:TreatWarningsAsErrors=${{ env.RUN_SONAR == 'true' && 'false' || 'true' }}
+
+      - name: Run unit tests
+        run: |
+          dotnet-coverage collect \
+            --output coverage-unit.xml \
+            --output-format xml \
+            "dotnet test --filter Category=Unit --no-build --configuration Debug --verbosity normal"
+
       - name: Run integration tests
-        run: dotnet test --filter Category=Integration --no-build --configuration Debug --verbosity normal
+        run: |
+          dotnet-coverage collect \
+            --output coverage-integration.xml \
+            --output-format xml \
+            "dotnet test --filter Category=Integration --no-build --configuration Debug --verbosity normal"
+
+      - name: End Sonar analysis
+        if: env.RUN_SONAR == 'true'
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet-sonarscanner end
