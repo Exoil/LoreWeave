@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Neo4j.Driver;
 
 namespace LoreWeave.Infrastructure.Migrations;
@@ -7,6 +9,8 @@ namespace LoreWeave.Infrastructure.Migrations;
 /// Already-applied versions are tracked as <c>(:__Migration {Version})</c> nodes,
 /// so running the migrations repeatedly is safe.
 /// </summary>
+[SuppressMessage("Minor Code Smell", "S101:Types should be named in PascalCase",
+    Justification = "Neo4j is the vendor's own spelling of the product name; Neo4J would be wrong.")]
 public sealed class Neo4jMigrationRunner
 {
     private const string MigrationLabel = "__Migration";

@@ -11,6 +11,11 @@ public sealed record BoardConfiguration : BaseValueObject
 
     private const string HexColorErrorMessage = "Value for {0} must be a 6-digit hex colour, e.g. #4466cc.";
 
+    [SuppressMessage("Major Code Smell", "S107:Methods should not have too many parameters",
+        Justification =
+            "A flat list of colours and layout numbers is what this value object is. Grouping them into "
+            + "sub-records only to satisfy the parameter limit would ripple through the DTOs, record mapping "
+            + "and stored board nodes without making anything clearer.")]
     [SetsRequiredMembers]
     public BoardConfiguration(
         string characterNodeColor,

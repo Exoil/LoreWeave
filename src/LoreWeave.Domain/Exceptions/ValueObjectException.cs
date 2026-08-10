@@ -4,14 +4,16 @@ namespace LoreWeave.Domain.Exceptions;
 
 public class ValueObjectException : DomainException
 {
-    public readonly IDictionary<string, object> ValidationErrors;
+    // object? (not object) so the dictionary can be handed straight to
+    // Results.Problem's extensions parameter without a null-forgiving cast.
+    public IDictionary<string, object?> ValidationErrors { get; }
 
     public ValueObjectException(
         string title,
         string errorCode,
         IList<ValidationMessage> validationMessages)
         : base(title, errorCode, GetValidationMessage(validationMessages)) =>
-        ValidationErrors = validationMessages.ToDictionary(x => x.PropertyName, y => (object)y.Message);
+        ValidationErrors = validationMessages.ToDictionary(x => x.PropertyName, object? (y) => y.Message);
 
     private static string GetValidationMessage(IList<ValidationMessage> validationMessages)
     {

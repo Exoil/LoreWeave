@@ -17,7 +17,7 @@ public sealed record UpdateKnowRelation : BaseValueObject
         if (fromCharacterId == toCharacterId)
         {
             throw new ArgumentException("From and To cannot be the same character id",
-                "fromCharacterId, toCharacterId");
+                nameof(toCharacterId));
         }
 
         FromCharacterId = fromCharacterId;

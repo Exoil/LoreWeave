@@ -198,23 +198,20 @@ public class ResultsToHttpResponsesTest
     }
 
 
-    public static IEnumerable<object[]> GetExceptionsWithResponses()
+    public static TheoryData<DomainException, int> GetExceptionsWithResponses() => new()
     {
-        yield return new object[]
         {
             new ValueObjectException(
                 "Text Validation Exception",
                 "errorCode",
                 new List<ValidationMessage>()),
             (int)HttpStatusCode.BadRequest
-        };
-
-        yield return new object[]
+        },
         {
             new ConflictException("Character is already connected to the fact."),
             (int)HttpStatusCode.Conflict
-        };
-    }
+        }
+    };
 
     // Marker request type for void-style requests must be public for proxy generation
     public readonly struct VoidRequest

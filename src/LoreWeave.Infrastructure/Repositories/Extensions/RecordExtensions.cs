@@ -14,6 +14,8 @@ namespace LoreWeave.Infrastructure.Repositories.Extensions;
 
 public static class RecordExtensions
 {
+    private const string VersionColumn = "Version";
+
     public static Board ToBoard(this IRecord record)
     {
         var createBoard = new CreateBoard(
@@ -32,7 +34,7 @@ public static class RecordExtensions
             record["ShowGrid"].As<bool>(),
             record["ScalingObjects"].As<bool>());
 
-        return new Board(createBoard, configuration, (ushort)record["Version"].As<int>());
+        return new Board(createBoard, configuration, (ushort)record[VersionColumn].As<int>());
     }
 
     public static Character ToCharacter(this IRecord record)
@@ -41,7 +43,7 @@ public static class RecordExtensions
             record["Id"].As<string>().DatabaseIdToGuid(),
             record["Name"].As<string>());
 
-        return new Character(createCharacter, (ushort)record["Version"].As<int>());
+        return new Character(createCharacter, (ushort)record[VersionColumn].As<int>());
     }
 
     public static CharacterWithKnowRelation ToCharacterWithKnowRelation(this IRecord record)
@@ -76,7 +78,7 @@ public static class RecordExtensions
             record["Title"].As<string>(),
             record["Content"].As<string>());
 
-        return new Fact(createFact, (ushort)record["Version"].As<int>());
+        return new Fact(createFact, (ushort)record[VersionColumn].As<int>());
     }
 
     public static KnowRelation ToKnowRelation(this IRecord record) =>
@@ -86,5 +88,5 @@ public static class RecordExtensions
             record["IsStrong"].As<bool>(),
             record["FromCharacterId"].As<string>().DatabaseIdToGuid(),
             record["ToCharacterId"].As<string>().DatabaseIdToGuid(),
-            (ushort)record["Version"].As<int>());
+            (ushort)record[VersionColumn].As<int>());
 }
