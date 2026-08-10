@@ -1,3 +1,5 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace LoreWeave.Application.Models;
 
 /// <summary>
@@ -37,6 +39,10 @@ public readonly struct Result<TValue, TError>
 {
     private readonly TValue? _value;
 
+    [SuppressMessage("Major Code Smell", "S2372:Exceptions should not be thrown from property getters",
+        Justification =
+            "Throwing from this getter is the point - it mirrors Nullable<T>.Value and forces callers "
+            + "to check IsSuccess before reading the payload.")]
     public TValue Value
     {
         get

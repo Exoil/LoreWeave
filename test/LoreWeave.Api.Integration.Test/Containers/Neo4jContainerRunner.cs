@@ -31,6 +31,8 @@ public class Neo4jContainerRunner : IAsyncDisposable
             await _container.StopAsync();
             await _container.DisposeAsync();
         }
+
+        GC.SuppressFinalize(this);
     }
 
     public async Task InitializeAsync()

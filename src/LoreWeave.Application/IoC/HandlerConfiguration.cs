@@ -18,7 +18,7 @@ public static class HandlerConfiguration
 {
     public static IServiceCollection RegisterHandlers(this IServiceCollection services)
     {
-        var messagePipeBuilder = services
+        services
             .AddMessagePipe(options =>
             {
                 options.InstanceLifetime = InstanceLifetime.Scoped;

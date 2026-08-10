@@ -74,7 +74,7 @@ public class ResultsToHttpResponses
                 (int)HttpStatusCode.BadRequest,
                 validationException.Title,
                 validationException.ErrorCode,
-                validationException.ValidationErrors!),
+                validationException.ValidationErrors),
         NotFoundException notFoundException
             => Results.Problem(
                 notFoundException.Message,

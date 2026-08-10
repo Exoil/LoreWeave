@@ -97,20 +97,10 @@ public static class CharacterEndpoints
                     async (
                             [FromServices] ResultsToHttpResponses responseResolver,
                             [FromRoute] Guid boardId,
-                            [FromQuery] uint pageNumber,
-                            [FromQuery] uint pageSize,
-                            [FromQuery] string sortType,
-                            [FromQuery] string sortOrder,
-                            [FromQuery] string? nameFilter,
+                            [AsParameters] CharacterPageDto page,
                             CancellationToken cancellationToken = default) =>
                         await responseResolver.GetResult<GetCharacterPageQuery, IReadOnlyCollection<CharacterPayloadWithRelations>>(
-                            new GetCharacterPageQuery(
-                                boardId,
-                                pageNumber,
-                                pageSize,
-                                sortType,
-                                sortOrder,
-                                nameFilter),
+                            page.ToQuery(boardId),
                             data => Results.Ok(
                                 data),
                             cancellationToken));

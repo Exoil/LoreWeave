@@ -75,5 +75,7 @@ public class ApiWebApplicationFactory : WebApplicationFactory<SutProgram>
     {
         await _neo4JContainerRunner.DisposeAsync();
         await base.DisposeAsync();
+
+        GC.SuppressFinalize(this);
     }
 }

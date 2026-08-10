@@ -18,7 +18,7 @@ public sealed record CreateKnowRelation : BaseValueObject
         if (fromCharacterId == toCharacterId)
         {
             throw new ArgumentException("From and To cannot be the same character id",
-                "fromCharacterId, toCharacterId");
+                nameof(toCharacterId));
         }
 
         Id = id;
