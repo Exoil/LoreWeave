@@ -62,11 +62,15 @@ jobs:
         run: dotnet restore
 
       # sonar.coverage.exclusions drops wiring-only code from the coverage
-      # numbers while KEEPING it under the rules/issues analysis. These files
-      # are composition root and route registration: they declare how the app
-      # is assembled, so a test over them asserts the framework works, not that
-      # our logic is right. The behaviour they wire up is covered through the
-      # handler unit tests and the endpoint integration tests instead.
+      # numbers while KEEPING it under the rules/issues analysis. Program.cs and
+      # IoC/* are composition root and DI registration: a test over them asserts
+      # that MessagePipe and the ASP.NET host work, which is not our logic to
+      # verify.
+      #
+      # Endpoints are deliberately NOT excluded. They carry real behaviour -
+      # query mapping, ETag header writes, Created-URI construction - which the
+      # integration tests cover today, and keeping them in means Sonar still
+      # flags a new endpoint that arrives without a test.
       - name: Begin Sonar analysis
         if: env.RUN_SONAR == 'true'
         env:
@@ -76,7 +80,7 @@ jobs:
             /k:"Exoil_LoreWeave" \
             /o:"exoil" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.coverage.exclusions="**/Program.cs,**/IoC/**,**/Endpoints/**" \
+            /d:sonar.coverage.exclusions="**/Program.cs,**/IoC/**" \
             /d:sonar.cs.vscoveragexml.reportsPaths="coverage-unit.xml,coverage-integration.xml"
 
       # --no-incremental: Sonar only analyses projects that actually compile in
