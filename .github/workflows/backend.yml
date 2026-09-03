@@ -1,4 +1,4 @@
-name: Backend
+name: Backend Tests & Sonar Analysis
 
 on:
   push:
@@ -25,25 +25,27 @@ jobs:
   build-test-analyze:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0 # Sonar needs full history for blame / new-code detection
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
+      # Java 21 is the runtime SonarQube Cloud requires for its scanners; 17 is
+      # deprecated and newer JDKs are not on the supported list, so pin 21.
       - name: Setup Java
         if: env.RUN_SONAR == 'true'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: '21'
 
       - name: Cache SonarCloud packages
         if: env.RUN_SONAR == 'true'
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar-${{ env.SONAR_SCANNER_VERSION }}
@@ -61,6 +63,13 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore
 
+      # sonar.cs.vstest.reportsPaths feeds the TRX files produced below, so Sonar
+      # reports test execution (count, failures, duration) next to coverage
+      # instead of showing "0 unit tests".
+      #
+      # sonar.sources / sonar.tests are deliberately NOT set: the .NET scanner
+      # derives them from the MSBuild projects it observes (IsTestProject /
+      # Microsoft.NET.Test.Sdk), and overriding them makes it index files twice.
       - name: Begin Sonar analysis
         if: env.RUN_SONAR == 'true'
         env:
@@ -70,7 +79,8 @@ jobs:
             /k:"Exoil_LoreWeave" \
             /o:"exoil" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.cs.vscoveragexml.reportsPaths="coverage-unit.xml,coverage-integration.xml"
+            /d:sonar.cs.vscoveragexml.reportsPaths="coverage-unit.xml,coverage-integration.xml" \
+            /d:sonar.cs.vstest.reportsPaths="test-results/**/*.trx"
 
       # --no-incremental: Sonar only analyses projects that actually compile in
       # this build, so nothing may be skipped.
@@ -85,14 +95,14 @@ jobs:
           dotnet-coverage collect \
             --output coverage-unit.xml \
             --output-format xml \
-            "dotnet test --filter Category=Unit --no-build --configuration Debug --verbosity normal"
+            "dotnet test --filter Category=Unit --no-build --configuration Debug --verbosity normal --logger trx --results-directory test-results/unit"
 
       - name: Run integration tests
         run: |
           dotnet-coverage collect \
             --output coverage-integration.xml \
             --output-format xml \
-            "dotnet test --filter Category=Integration --no-build --configuration Debug --verbosity normal"
+            "dotnet test --filter Category=Integration --no-build --configuration Debug --verbosity normal --logger trx --results-directory test-results/integration"
 
       - name: End Sonar analysis
         if: env.RUN_SONAR == 'true'
