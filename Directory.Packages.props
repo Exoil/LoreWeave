@@ -16,8 +16,8 @@
     <PackageVersion Include="Serilog.Sinks.ApacheKafka" Version="1.0.0" />
     <PackageVersion Include="Serilog.Sinks.Console" Version="6.1.1" />
     <PackageVersion Include="Steeltoe.Configuration.Placeholder" Version="4.3.0" />
-    <PackageVersion Include="Testcontainers" Version="4.15.0" />
-    <PackageVersion Include="Testcontainers.Neo4j" Version="4.15.0" />
+    <PackageVersion Include="Testcontainers" Version="4.16.0" />
+    <PackageVersion Include="Testcontainers.Neo4j" Version="4.16.0" />
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.3.0" />
     <!-- Tests -->
